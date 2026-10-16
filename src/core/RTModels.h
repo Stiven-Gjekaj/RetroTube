@@ -11,6 +11,8 @@
 @property (nonatomic, copy) NSString *viewsText;      // "904M views"
 @property (nonatomic, copy) NSString *publishedText;  // "12 years ago"
 @property (nonatomic, copy) NSURL *thumbnailURL;
+@property (nonatomic, copy) NSDate *publishedDate;    // Only from the RSS feed
+@property (nonatomic) BOOL isLive;
 @end
 
 @interface RTChannel : NSObject <NSCoding>

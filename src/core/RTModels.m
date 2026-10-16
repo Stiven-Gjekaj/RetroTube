@@ -11,7 +11,7 @@ static void RTDecode(id object, NSCoder *coder, NSArray *keys) {
 
 static NSArray *RTVideoKeys(void) {
     return @[ @"videoId", @"title", @"channelName", @"channelId", @"lengthText", @"viewsText",
-              @"publishedText", @"thumbnailURL" ];
+              @"publishedText", @"thumbnailURL", @"publishedDate", @"isLive" ];
 }
 
 static NSArray *RTChannelKeys(void) {

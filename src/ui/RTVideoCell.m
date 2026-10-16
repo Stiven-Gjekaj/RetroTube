@@ -102,8 +102,8 @@ static NSString *RTJoin(NSArray *parts) {
     self.title.text = video.title;
     self.details.text = [NSString stringWithFormat:@"%@\n%@", video.channelName ?: @"",
                          RTJoin(@[ video.viewsText ?: [NSNull null], video.publishedText ?: [NSNull null] ])];
-    self.length.text = video.lengthText ?: @"LIVE";
-    self.length.hidden = NO;
+    self.length.text = video.isLive ? @"LIVE" : video.lengthText;
+    self.length.hidden = self.length.text.length == 0;
     self.thumb.frame = CGRectMake(RTMargin, RTMargin, RTThumbWidth, RTThumbHeight);
     [self loadImage:video.thumbnailURL];
     [self setNeedsLayout];

@@ -11,6 +11,17 @@ RT_TEST(test_video_survives_archiving) {
     RT_EQUAL(copy.title, @"A title");
     RT_EQUAL(copy.thumbnailURL, video.thumbnailURL);
     RT_EXPECT(copy.channelName == nil);
+    RT_EXPECT(!copy.isLive);
+}
+
+RT_TEST(test_video_keeps_date_and_live_flag) {
+    RTVideo *video = [RTVideo new];
+    video.videoId = @"abc";
+    video.publishedDate = [NSDate dateWithTimeIntervalSince1970:1000];
+    video.isLive = YES;
+    RTVideo *copy = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:video]];
+    RT_EQUAL(copy.publishedDate, video.publishedDate);
+    RT_EXPECT(copy.isLive);
 }
 
 RT_TEST(test_channel_survives_archiving) {

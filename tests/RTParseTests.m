@@ -73,6 +73,15 @@ RT_TEST(test_page_reads_video_fields) {
     RT_EQUAL(video.thumbnailURL.absoluteString, @"https://i.ytimg.com/b.jpg");
 }
 
+RT_TEST(test_page_marks_video_with_no_length_as_live) {
+    NSMutableDictionary *renderer = [Video(@"v1", @"Live")[@"videoWithContextRenderer"] mutableCopy];
+    [renderer removeObjectForKey:@"lengthText"];
+    RTVideo *live = RTParsePage(@{ @"contents": @[ @{ @"videoWithContextRenderer": renderer } ] }).items[0];
+    RTVideo *normal = RTParsePage(@{ @"contents": @[ Video(@"v2", @"Normal") ] }).items[0];
+    RT_EXPECT(live.isLive);
+    RT_EXPECT(!normal.isLive);
+}
+
 RT_TEST(test_page_keeps_order_and_drops_duplicates) {
     NSDictionary *json = @{ @"a": @{ @"contents": @[
         Video(@"v1", @"1"), @{ @"shelf": @[ Video(@"v2", @"2"), Video(@"v1", @"again") ] }, Video(@"v3", @"3") ] } };

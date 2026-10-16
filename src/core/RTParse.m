@@ -62,6 +62,8 @@ static RTVideo *RTParseVideo(NSDictionary *r) {
     video.channelName = RTText(byline);
     video.channelId = RTChannelIdOfRuns(byline);
     video.lengthText = RTText(r[@"lengthText"]);
+    // A list item with no length is a live video or a premiere.
+    video.isLive = video.lengthText == nil;
     video.viewsText = RTText(r[@"shortViewCountText"]) ?: RTText(r[@"viewCountText"]);
     video.publishedText = RTText(r[@"publishedTimeText"]);
     video.thumbnailURL = RTThumbnailURL(r[@"thumbnail"], 320);
