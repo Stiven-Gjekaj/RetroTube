@@ -7,6 +7,14 @@ number, and a change that breaks the stored subscriptions or history raises
 the major number.
 Each release on GitHub has the `.deb` package as an asset.
 
+## 1.0.1 (2026-10-16)
+
+- Search results show the original title of each video. YouTube search
+  sometimes gave a title that the creator translated into another language,
+  for example Italian, and the video page then showed the original. The app
+  now gets the original titles from the oEmbed endpoint of YouTube. A
+  translated title can show for a moment before the original comes.
+
 ## 1.0.0 (2026-10-16)
 
 The first full release. It has the same code as 0.4.0.
