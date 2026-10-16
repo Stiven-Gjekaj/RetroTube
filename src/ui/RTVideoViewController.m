@@ -5,6 +5,7 @@
 #import "RTInnerTube.h"
 #import "RTNext.h"
 #import "RTPlayback.h"
+#import "RTPlayer.h"
 
 static const CGFloat RTPadding = 10;
 
@@ -44,7 +45,7 @@ static const CGFloat RTPadding = 10;
 
 @end
 
-@interface RTVideoViewController ()
+@interface RTVideoViewController () <UIActionSheetDelegate>
 @property (nonatomic, strong) RTVideo *video;
 @property (nonatomic, strong) RTNextInfo *details;
 @property (nonatomic, strong) RTPlayerInfo *playerInfo;
@@ -60,6 +61,7 @@ static const CGFloat RTPadding = 10;
 @property (nonatomic, strong) UILabel *subscribersLabel;
 @property (nonatomic, strong) UILabel *descriptionLabel;
 @property (nonatomic, strong) UIButton *moreButton;
+@property (nonatomic, copy) NSArray *qualityChoices;  // Heights, as NSNumber
 @end
 
 @implementation RTVideoViewController
@@ -78,6 +80,7 @@ static const CGFloat RTPadding = 10;
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.refreshControl = nil;
+    [self updateQualityButton];
     [self buildHeader];
     [self layoutHeader];
     // Load the streams now, so that play starts faster.
@@ -87,6 +90,7 @@ static const CGFloat RTPadding = 10;
         if (info.shortDescription.length) weakSelf.fullDescription = info.shortDescription;
         if (!weakSelf.video.title && info.title) weakSelf.video.title = info.title;
         [weakSelf layoutHeader];
+        [weakSelf updateQualityButton];
     }];
 }
 
@@ -271,6 +275,39 @@ static UIView *RTLine(CGFloat y) {
     }
     if (!channel.channelId) return;
     [self.navigationController pushViewController:[[RTChannelViewController alloc] initWithChannel:channel] animated:YES];
+}
+
+#pragma mark - Quality
+
+// The button shows the height that plays: the highest one under the setting.
+- (void)updateQualityButton {
+    NSInteger height = [self.playerInfo videoFormatForMaxHeight:[RTPlayback maxHeight]].height;
+    if (!height) height = [RTPlayback maxHeight];
+    NSString *title = [NSString stringWithFormat:@"%ldp", (long)height];
+    self.navigationItem.rightBarButtonItem =
+        [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStyleBordered target:self
+                                        action:@selector(chooseQuality)];
+}
+
+- (void)chooseQuality {
+    NSMutableOrderedSet *heights = [NSMutableOrderedSet orderedSet];
+    for (RTFormat *format in self.playerInfo.videoFormats) {
+        if (format.fps <= 30 && format.height >= 240) [heights addObject:@(format.height)];
+    }
+    if (!heights.count) [heights addObjectsFromArray:@[ @1080, @720, @480, @360 ]];
+    self.qualityChoices = heights.array;
+    UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:@"Highest video quality" delegate:self
+                                              cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+    for (NSNumber *height in self.qualityChoices) [sheet addButtonWithTitle:[NSString stringWithFormat:@"%@p", height]];
+    sheet.cancelButtonIndex = [sheet addButtonWithTitle:@"Cancel"];
+    [sheet showInView:self.view.window];
+}
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex < 0 || (NSUInteger)buttonIndex >= self.qualityChoices.count) return;
+    [[NSUserDefaults standardUserDefaults] setInteger:[self.qualityChoices[(NSUInteger)buttonIndex] integerValue]
+                                               forKey:RTMaxHeightDefaultsKey];
+    [self updateQualityButton];
 }
 
 - (void)toggleDescription {
