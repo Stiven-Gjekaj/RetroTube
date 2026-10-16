@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1118 240" width="559" height="120">
+  <!-- RetroTube logo: the television mark and a hand drawn "RetroTube" wordmark. -->
+  <!-- The letters are monoline strokes with a dark outline, so they read on white and on dark backgrounds. -->
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7c4a28"/>
+      <stop offset="1" stop-color="#4a2a15"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4e9cf"/>
+      <stop offset="1" stop-color="#d9c69c"/>
+    </linearGradient>
+    <radialGradient id="glass" cx="0.35" cy="0.3" r="0.9">
+      <stop offset="0" stop-color="#3d5a64"/>
+      <stop offset="0.6" stop-color="#1b272d"/>
+      <stop offset="1" stop-color="#0d1316"/>
+    </radialGradient>
+    <linearGradient id="play" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffc24a"/>
+      <stop offset="1" stop-color="#f26a1b"/>
+    </linearGradient>
+    <radialGradient id="knob" cx="0.4" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#f7f1e2"/>
+      <stop offset="1" stop-color="#b8a98a"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ff9a3c" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ff9a3c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wordA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffc24a"/>
+      <stop offset="1" stop-color="#f06a1e"/>
+    </linearGradient>
+    <linearGradient id="wordB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7ead0"/>
+      <stop offset="1" stop-color="#dcc38e"/>
+    </linearGradient>
+
+    <!-- Letter centerlines. Cap height is 100 units. Each letter sits at its own x offset. -->
+    <g id="retro" fill="none">
+      <path transform="translate(0 0)" d="M11 89 V11 H44 A22 22 0 0 1 44 55 H11 M42 55 L68 89"/>
+      <path transform="translate(88 0)" d="M11 65 H59 A24 24 0 1 0 52 82"/>
+      <path transform="translate(168 0)" d="M22 18 V75 Q22 89 36 89 H48 M4 41 H44"/>
+      <path transform="translate(226 0)" d="M11 41 V89 M11 63 A22 22 0 0 1 33 41 H44"/>
+      <path transform="translate(278 0)" d="M12 65 A24 24 0 1 1 60 65 A24 24 0 1 1 12 65"/>
+    </g>
+    <g id="tube" fill="none">
+      <path transform="translate(358 0)" d="M4 11 H76 M40 11 V89"/>
+      <path transform="translate(442 0)" d="M11 41 V65 A24 24 0 0 0 59 65 V41 M59 41 V89"/>
+      <path transform="translate(522 0)" d="M11 11 V89 M11 65 A24 24 0 1 1 59 65 A24 24 0 1 1 11 65"/>
+      <path transform="translate(602 0)" d="M11 65 H59 A24 24 0 1 0 52 82"/>
+    </g>
+  </defs>
+
+  <!-- The television mark -->
+  <g transform="translate(10 12) scale(0.93)">
+    <rect x="34" y="196" width="40" height="30" rx="8" fill="#3a1f0d"/>
+    <rect x="182" y="196" width="40" height="30" rx="8" fill="#3a1f0d"/>
+    <rect x="4" y="4" width="248" height="200" rx="24" fill="url(#wood)" stroke="#2e1708" stroke-width="4"/>
+    <g fill="none" stroke-linecap="round">
+      <path d="M14 20 C60 16 110 26 170 20 S230 16 244 20" stroke="#3a1f0d" stroke-opacity="0.45" stroke-width="3"/>
+      <path d="M14 190 C60 194 120 184 180 190 S230 194 244 188" stroke="#9a6236" stroke-opacity="0.35" stroke-width="3"/>
+    </g>
+    <rect x="24" y="24" width="208" height="160" rx="12" fill="url(#plate)" stroke="#b39f74" stroke-width="3"/>
+    <rect x="36" y="36" width="184" height="104" rx="14" fill="#17181a"/>
+    <rect x="42" y="42" width="172" height="92" rx="11" fill="url(#glass)"/>
+    <ellipse cx="130" cy="88" rx="60" ry="42" fill="url(#glow)"/>
+    <path d="M106 62 L106 114 L154 88 Z" fill="url(#play)" stroke="#8a3a0c" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M54 48 Q128 44 204 50 Q198 62 128 58 Q74 56 54 48 Z" fill="#ffffff" fill-opacity="0.12"/>
+    <rect x="40" y="150" width="96" height="8" rx="4" fill="#d8402a"/>
+    <rect x="40" y="158" width="96" height="8" fill="#f08a24"/>
+    <rect x="40" y="166" width="96" height="8" rx="4" fill="#f2c230"/>
+    <circle cx="174" cy="162" r="14" fill="url(#knob)" stroke="#5b4630" stroke-width="3"/>
+    <path d="M174 162 L180 153" stroke="#5b4630" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="210" cy="162" r="14" fill="url(#knob)" stroke="#5b4630" stroke-width="3"/>
+    <path d="M210 162 L204 153" stroke="#5b4630" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- The wordmark. The dark layer is the outline. The color layer sits on top. -->
+  <g transform="translate(272 56) scale(1.22)" stroke-linecap="round" stroke-linejoin="round">
+    <use href="#retro" stroke="#3a1f0d" stroke-width="34"/>
+    <use href="#tube" stroke="#3a1f0d" stroke-width="34"/>
+    <use href="#retro" stroke="url(#wordA)" stroke-width="22"/>
+    <use href="#tube" stroke="url(#wordB)" stroke-width="22"/>
+  </g>
+</svg>

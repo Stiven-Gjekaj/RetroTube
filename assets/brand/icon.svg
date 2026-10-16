@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- RetroTube app icon. A close view of a 1970s wood cabinet television. -->
+  <!-- Full bleed. iOS 6 masks the corners and adds the gloss. -->
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7c4a28"/>
+      <stop offset="1" stop-color="#4a2a15"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4e9cf"/>
+      <stop offset="1" stop-color="#d9c69c"/>
+    </linearGradient>
+    <radialGradient id="glass" cx="0.35" cy="0.3" r="0.9">
+      <stop offset="0" stop-color="#3d5a64"/>
+      <stop offset="0.6" stop-color="#1b272d"/>
+      <stop offset="1" stop-color="#0d1316"/>
+    </radialGradient>
+    <linearGradient id="play" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffc24a"/>
+      <stop offset="1" stop-color="#f26a1b"/>
+    </linearGradient>
+    <radialGradient id="knob" cx="0.4" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#f7f1e2"/>
+      <stop offset="1" stop-color="#b8a98a"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ff9a3c" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ff9a3c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Wood cabinet -->
+  <rect width="512" height="512" fill="url(#wood)"/>
+  <!-- Wood grain. These lines are texture only and vanish at small sizes. -->
+  <g fill="none" stroke-linecap="round">
+    <path d="M-10 40 C120 30 240 52 360 44 S470 30 530 42" stroke="#3a1f0d" stroke-opacity="0.45" stroke-width="5"/>
+    <path d="M-10 96 C100 110 200 86 330 100 S460 104 530 92" stroke="#9a6236" stroke-opacity="0.35" stroke-width="4"/>
+    <path d="M-10 250 C90 240 170 262 300 252 S440 240 530 254" stroke="#3a1f0d" stroke-opacity="0.4" stroke-width="6"/>
+    <path d="M-10 400 C110 412 230 392 350 404 S470 410 530 398" stroke="#9a6236" stroke-opacity="0.3" stroke-width="4"/>
+    <path d="M-10 470 C120 462 220 480 340 470 S460 462 530 474" stroke="#3a1f0d" stroke-opacity="0.45" stroke-width="5"/>
+  </g>
+
+  <!-- Cream face plate -->
+  <rect x="32" y="32" width="448" height="448" rx="22" fill="url(#plate)" stroke="#b39f74" stroke-width="4"/>
+
+  <!-- Screen bezel and glass -->
+  <rect x="56" y="56" width="400" height="300" rx="34" fill="#17181a"/>
+  <rect x="68" y="68" width="376" height="276" rx="28" fill="url(#glass)"/>
+  <!-- Phosphor glow behind the play symbol -->
+  <ellipse cx="262" cy="206" rx="130" ry="110" fill="url(#glow)"/>
+  <!-- Play symbol -->
+  <path d="M202 126 L202 286 L344 206 Z" fill="url(#play)" stroke="#8a3a0c" stroke-width="6" stroke-linejoin="round"/>
+  <!-- Reflection on the curved glass -->
+  <path d="M96 80 Q256 70 412 86 Q400 120 256 110 Q140 104 96 80 Z" fill="#ffffff" fill-opacity="0.12"/>
+
+  <!-- Control strip: three retro stripes -->
+  <rect x="64" y="389" width="226" height="18" rx="9" fill="#d8402a"/>
+  <rect x="64" y="407" width="226" height="18" fill="#f08a24"/>
+  <rect x="64" y="425" width="226" height="18" rx="9" fill="#f2c230"/>
+
+  <!-- Two tuning knobs -->
+  <circle cx="356" cy="416" r="32" fill="url(#knob)" stroke="#5b4630" stroke-width="6"/>
+  <path d="M356 416 L370 396" stroke="#5b4630" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="434" cy="416" r="32" fill="url(#knob)" stroke="#5b4630" stroke-width="6"/>
+  <path d="M434 416 L420 396" stroke="#5b4630" stroke-width="8" stroke-linecap="round"/>
+</svg>
