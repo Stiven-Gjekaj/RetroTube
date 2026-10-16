@@ -1,41 +1,135 @@
-# RetroTube
+<div align="center">
 
-RetroTube is a YouTube client for an iPhone 4S on iOS 6.1.3 (jailbroken).
-It installs as a .deb package through Cydia.
-It operates with no outside server.
+<img src="assets/icon.svg" alt="RetroTube" width="140">
 
-The iOS 6 system TLS connects to YouTube.
-The InnerTube /player API with the IOS client identity gives direct stream
-URLs and an HLS manifest.
-The test in `probe/main.m` shows these 3 steps on the real phone.
+### A YouTube client for the iPhone 4S on iOS 6
 
-## Get the SDK
+_Native UIKit, no server, no account_
 
-1. Download `iPhoneOS9.3.sdk.tar.xz` from the releases of
-   https://github.com/theos/sdks.
-2. Unpack it into `sdks/`. The result is `sdks/iPhoneOS9.3.sdk`.
-3. Run `./fix-sdk.sh` one time.
-   This script changes the SDK stubs for the new Apple linker and for iOS 6.
+![iOS 6](https://img.shields.io/badge/ios-6.1-8195af?style=for-the-badge&logo=apple&logoColor=ffffff)
+![armv7](https://img.shields.io/badge/armv7-a51d17?style=for-the-badge)
+![Objective-C](https://img.shields.io/badge/objective--c-ef4a3f?style=for-the-badge)
+![Cydia](https://img.shields.io/badge/cydia-6d83a2?style=for-the-badge)
+[![MIT licence](https://img.shields.io/badge/mit_licence-3a3f47?style=for-the-badge)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/Stiven-Gjekaj/RetroTube?style=for-the-badge&label=release&color=16181c)](https://github.com/Stiven-Gjekaj/RetroTube/releases/latest)
 
-Git does not track `sdks/`. The SDK is 3rd-party code.
+<p align="center">
+  <a href="#overview"><b>Overview</b></a> |
+  <a href="#install"><b>Install</b></a> |
+  <a href="#build"><b>Build</b></a> |
+  <a href="docs/architecture.md"><b>Architecture</b></a> |
+  <a href="TODO.md"><b>Roadmap</b></a>
+</p>
+
+</div>
+
+---
+
+> [!NOTE]
+> **Version 0.1.0 is out.** It searches YouTube, shows the videos of a
+> channel, and plays videos up to 720p.
+> [TODO.md](TODO.md) lists what comes before 1.0.0.
+> [docs/decisions.md](docs/decisions.md) holds each decision and its reason.
+
+---
+
+<table>
+<tr>
+<td width="33%" valign="top">
+<img src="assets/screenshots/search.png" alt="The search screen with results for daft punk: videos with thumbnails, durations, and a channel">
+<p align="center"><i>Search</i></p>
+</td>
+<td width="33%" valign="top">
+<img src="assets/screenshots/channel.png" alt="The videos of a channel, newest first">
+<p align="center"><i>The videos of a channel</i></p>
+</td>
+<td width="33%" valign="top">
+<img src="assets/screenshots/player.png" alt="A video that plays in the movie player of iOS 6">
+<p align="center"><i>The movie player of iOS 6</i></p>
+</td>
+</tr>
+</table>
+
+## Overview
+
+**RetroTube** plays YouTube on an iPhone 4S with iOS 6.1.3. The official app
+and the website stopped working on iOS 6 many years ago. RetroTube is a new
+native app for the old system. It looks like the other apps of iOS 6.
+
+The app speaks to YouTube directly with the TLS of iOS 6. It does not use a
+server between the phone and YouTube, and it does not need a Google account.
+
+YouTube sends the video and the sound as two separate streams that iOS 6
+cannot play. The app joins them on the phone. A small server in the app, on
+`127.0.0.1`, changes the streams into HLS that the movie player of iOS 6 plays,
+with seek and the standard controls.
+[docs/architecture.md](docs/architecture.md) tells how.
+
+## Features
+
+- Search for videos and channels, with more results as you scroll
+- The videos of a channel, newest first
+- Play videos in H.264 up to 720p, with sound, seek, and full screen
+- Paste a YouTube link into the search bar to open its video or channel
+- Open `retrotube://` links from other apps:
+  `retrotube://search?q=TEXT`, `retrotube://watch?v=ID`,
+  `retrotube://channel?id=UC...`
+
+Before 1.0.0: a video page with the details and the related videos, local
+subscriptions with a feed, a history, and a Popular tab.
+
+## Install
+
+You need an iPhone, iPod touch, or iPad with iOS 6 and a jailbreak.
+
+1. Download the `.deb` file from the
+   [latest release](https://github.com/Stiven-Gjekaj/RetroTube/releases/latest).
+2. Copy it to the phone, for example with `scp` to `/tmp/`.
+3. On the phone, as root: `dpkg -i /tmp/io.github.stivengjekaj.retrotube_*.deb`.
+
+The RetroTube icon comes on the home screen. To remove the app:
+`dpkg -r io.github.stivengjekaj.retrotube`.
 
 ## Build
 
-    ./build.sh OUT SRC.m -framework Foundation
+You need a Mac with Xcode and the iOS 9.3 SDK of Theos.
 
-The script makes an armv7 binary in ARM mode (`-marm`).
-It compiles each source with ARC and links without ARC.
+1. Download `iPhoneOS9.3.sdk.tar.xz` from the releases of
+   [theos/sdks](https://github.com/theos/sdks/releases) and unpack it into
+   `sdks/`. The result is `sdks/iPhoneOS9.3.sdk`. Git does not track `sdks/`.
+2. Run `./fix-sdk.sh` one time. It changes the SDK stubs for the new Apple
+   linker and for iOS 6.
+3. Build:
 
-Example:
+| Command | Result |
+| ------- | ------ |
+| `scripts/app.sh` | `build/RetroTube.app` |
+| `scripts/deb.sh` | The Cydia package in `build/` |
+| `scripts/test.sh` | The tests, on the Mac |
+| `scripts/test.sh --phone` | The tests, on the phone |
+| `RT_LIVE=1 scripts/test.sh` | Also the tests that use the network |
+| `scripts/install.sh` | Builds the app, copies it to the phone, and opens it |
 
-    ./build.sh probe/probe probe/main.m -framework Foundation
+The phone scripts use `ssh iphone4s`. Set up that host in `~/.ssh/config`,
+for example with a USB tunnel of `iproxy` on port 2222.
 
-## Run on the phone
+`build.sh` builds one armv7 binary. It compiles with ARC and links without
+ARC, and all code is in ARM mode (`-marm`). The new Apple linker makes Thumb
+code that crashes on iOS 6 before `main` starts.
 
-The phone is at `ssh iphone4s` through a USB iproxy tunnel on port 2222.
+To run a tool on the phone:
 
-    scp X iphone4s:/tmp/
-    ssh iphone4s 'ldid -S /tmp/X && /tmp/X'
+```
+./build.sh build/X probe/X.m -framework Foundation
+scp build/X iphone4s:/tmp/
+ssh iphone4s 'ldid -S /tmp/X && /tmp/X'
+```
 
-`ldid -S` signs the binary. iOS 6 does not start a binary that has no
-signature.
+`probe/` holds three tools: `main.m` tests the TLS and the player API,
+`play.m` plays and seeks a video with no interface, and `shot.m` saves a
+screenshot.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE). RetroTube is not made by YouTube or Google, and
+they do not support it. See [TERMS.md](TERMS.md).
