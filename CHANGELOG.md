@@ -4,6 +4,21 @@ Every release is written here, newest first. A version is
 `MAJOR.MINOR.PATCH`. Before 1.0.0, each big addition raises the minor number.
 Each release on GitHub has the `.deb` package as an asset.
 
+## 0.3.0 (2026-10-16)
+
+Subscriptions, a feed, and a history, with no account.
+
+- A tab bar with Feed, Search, Subscriptions, and History.
+- Subscribe to a channel from its page. The subscriptions stay on the
+  phone.
+- The Feed tab shows the newest videos of the subscriptions, from their RSS
+  feeds. Pull down to load it again.
+- The History tab shows the videos that you played, newest first, up to 200.
+  Swipe a row to remove it, or clear all of them.
+- The channel page shows the name of the channel, also from a link.
+- The bars and the accents have the colors of the logo.
+- A live video shows LIVE on its picture.
+
 ## 0.2.1 (2026-10-16)
 
 - The app icon has round corners and the gloss of iOS 6. iOS 6 does not add
