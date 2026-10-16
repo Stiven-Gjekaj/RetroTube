@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <!-- RetroTube app icon. A close view of a 1970s wood cabinet television. -->
-  <!-- Full bleed. iOS 6 masks the corners and adds the gloss. -->
+  <!-- Full bleed. icon-ios6.svg adds the round corners and the gloss. -->
   <defs>
     <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#7c4a28"/>
