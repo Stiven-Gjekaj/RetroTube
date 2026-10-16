@@ -10,6 +10,9 @@ Each entry gives the reason.
 - **The interface is stock iOS 6 UIKit.**
   It uses the navigation bar, the tab bar, and plain table cells.
   It fits the system, and it is fast on the A5 chip.
+- **The bars and the buttons use the colors of the logo** (chosen after
+  0.2.0). The controls stay the stock iOS 6 controls, with a tint of walnut,
+  cream, and amber.
 - **Subscriptions are local.**
   There is no sign-in.
   The app keeps the subscriptions and the history on the phone.
@@ -94,6 +97,18 @@ these results:
   system decodes the video in another process.
 - A seek to the middle starts play again after 4 seconds, at the start of the
   segment.
+
+## The icon
+
+iOS 6 rounds the corners of an App Store icon and adds the gloss. It does
+not do this for an app in `/Applications`, because it takes that app for a
+system app. The icons of the system apps have the corners and the gloss in
+the image. A test on the iPhone 4S (2026-10-16) showed the RetroTube icon
+square, next to the round Settings icon.
+
+**Decision: the icon image has its own corners and gloss.**
+`assets/brand/icon-ios6.svg` adds a corner radius of 10 of 57 pixels and a
+gloss to `assets/brand/icon.svg`. `scripts/icons.sh` renders it.
 
 ## Releases
 
