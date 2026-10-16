@@ -26,7 +26,7 @@ _Native UIKit, no server, no account_
 ---
 
 > [!NOTE]
-> **Version 0.2.0 is out.** It searches YouTube, shows a page for each video
+> **Version 0.2.1 is out.** It searches YouTube, shows a page for each video
 > with its related videos, shows the videos of a channel, and plays videos up
 > to 1080p.
 > [TODO.md](TODO.md) lists what comes before 1.0.0.
