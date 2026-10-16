@@ -29,6 +29,17 @@ Each entry gives the reason.
   The Popular tab shows shelves from the YouTube topic channels, for example
   Music, Gaming, Sports, and News.
 
+## The region
+
+YouTube does not accept all regions as the `gl` value. For the region AL
+(Albania), a search gives HTTP 400, and a topic page gives HTTP 200 with no
+videos (tested on 2026-10-16).
+
+**Decision: the app checks the region one time.** Before the first request,
+it sends one search with the region of the phone. If YouTube answers HTTP
+400, the app uses US. The result stays in the user defaults, so the check
+runs one time for each region.
+
 ## The InnerTube clients
 
 - **Lists use the MWEB client.**
