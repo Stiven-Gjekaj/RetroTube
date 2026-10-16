@@ -24,8 +24,8 @@
     self.navigation = [[RTNavigationController alloc] initWithRootViewController:self.search];
     self.window.rootViewController = self.navigation;
     [self.window makeKeyAndVisible];
-    NSURL *url = launchOptions[UIApplicationLaunchOptionsURLKey];
-    if (url) [self openLink:url];
+    // iOS calls application:openURL: after this method for a launch from a
+    // link, so this method does not open the link.
     return YES;
 }
 
