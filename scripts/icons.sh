@@ -11,7 +11,7 @@ rsvg-convert -w 320 -h 480 "$ROOT/assets/launch.svg" -o "$ROOT/resources/Default
 rsvg-convert -w 640 -h 960 "$ROOT/assets/launch.svg" -o "$ROOT/resources/Default@2x.png"
 
 # The tab bar icons. iOS 6 uses only their alpha channel.
-for name in feed search subscriptions history; do
+for name in popular feed search subscriptions history; do
     rsvg-convert -w 30 -h 30 "$ROOT/assets/tabs/$name.svg" -o "$ROOT/resources/Tab-$name.png"
     rsvg-convert -w 60 -h 60 "$ROOT/assets/tabs/$name.svg" -o "$ROOT/resources/Tab-$name@2x.png"
 done
