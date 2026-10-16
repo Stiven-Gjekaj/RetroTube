@@ -1,0 +1,11 @@
+Package: io.github.stivengjekaj.retrotube
+Name: RetroTube
+Version: @VERSION@
+Architecture: iphoneos-arm
+Description: A YouTube client for iOS 6, with no account and no server.
+Maintainer: Stiven Gjekaj <stivenagostingjekaj@gmail.com>
+Author: Stiven Gjekaj <stivenagostingjekaj@gmail.com>
+Section: Multimedia
+Depends: firmware (>= 6.0)
+Homepage: https://github.com/Stiven-Gjekaj/RetroTube
+Icon: file:///Applications/RetroTube.app/Icon@2x.png
