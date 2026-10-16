@@ -7,6 +7,7 @@ typedef void (*RTTestFunction)(void);
 
 void RTTestRegister(const char *name, RTTestFunction function);
 void RTTestFail(const char *file, int line, NSString *message);
+void RTTestSkip(void);
 
 #define RT_TEST(name)                                                         \
     static void name(void);                                                   \
@@ -35,3 +36,16 @@ void RTTestFail(const char *file, int line, NSString *message);
             RTTestFail(__FILE__, __LINE__, [NSString stringWithFormat:        \
                 @"%s is %lld, expected %lld", #actual, rt_a, rt_e]);           \
     } while (0)
+
+// A live test uses the network. It runs only when RT_LIVE=1 is set.
+#define RT_LIVE_ONLY()                                                        \
+    do {                                                                      \
+        const char *rt_live = getenv("RT_LIVE");                              \
+        if (!rt_live || !*rt_live) {                                          \
+            RTTestSkip();                                                     \
+            return;                                                           \
+        }                                                                     \
+    } while (0)
+
+// Runs the run loop until done is YES or the time is over.
+BOOL RTTestWait(BOOL *done, NSTimeInterval seconds);

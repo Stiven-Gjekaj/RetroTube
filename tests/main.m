@@ -9,6 +9,7 @@ static const char *gNames[RT_MAX_TESTS];
 static RTTestFunction gFunctions[RT_MAX_TESTS];
 static int gCount;
 static int gFailures;
+static int gSkipped;
 static const char *gCurrent;
 
 void RTTestRegister(const char *name, RTTestFunction function) {
@@ -25,6 +26,18 @@ void RTTestFail(const char *file, int line, NSString *message) {
     printf("FAIL %s (%s:%d): %s\n", gCurrent, base ? base + 1 : file, line, message.UTF8String);
 }
 
+void RTTestSkip(void) {
+    gSkipped++;
+}
+
+BOOL RTTestWait(BOOL *done, NSTimeInterval seconds) {
+    NSDate *until = [NSDate dateWithTimeIntervalSinceNow:seconds];
+    while (!*done && [until timeIntervalSinceNow] > 0) {
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+    }
+    return *done;
+}
+
 int main(int argc, char **argv) {
     int failedTests = 0;
     for (int i = 0; i < gCount; i++) {
@@ -36,6 +49,6 @@ int main(int argc, char **argv) {
             if (gFailures != before) failedTests++;
         }
     }
-    printf("%d tests, %d failed\n", gCount, failedTests);
+    printf("%d tests, %d failed, %d skipped\n", gCount, failedTests, gSkipped);
     return failedTests == 0 ? 0 : 1;
 }
