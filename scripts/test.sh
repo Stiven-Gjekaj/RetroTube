@@ -17,7 +17,7 @@ if [ "$1" = "--phone" ]; then
     scp -q "$OUT/rttests-armv7" iphone4s:/tmp/rttests
     ssh iphone4s "ldid -S /tmp/rttests && /tmp/rttests $*"
 else
-    clang -fobjc-arc -Wall -Werror -I"$ROOT/src/core" -I"$ROOT/tests" $SOURCES \
+    clang -fobjc-arc -Wall -Werror -mmacosx-version-min=10.9 -I"$ROOT/src/core" -I"$ROOT/tests" $SOURCES \
         -framework Foundation -o "$OUT/rttests"
     "$OUT/rttests" "$@"
 fi
