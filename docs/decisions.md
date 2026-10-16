@@ -34,10 +34,25 @@ Each entry gives the reason.
   The A5 chip parses a small answer faster.
   MWEB gives `videoWithContextRenderer` items for search, for the channel
   videos tab, and for the related videos.
-- **Playback uses the IOS client.**
-  The IOS client gives direct stream URLs with no signature cipher.
-  The MWEB, WEB embedded, and TV embedded clients refuse playback without the
-  JavaScript of the web player.
+- **Playback uses the VISIONOS client with a visitor ID.**
+  The app gets the visitor ID from the `/visitor_id` endpoint and keeps it.
+  If YouTube asks for a sign-in, the app gets a new visitor ID and tries one
+  more time.
+  The VISIONOS client gives direct stream URLs with no signature cipher, and
+  the URLs serve the full file.
+  A test on 2026-10-16 gave these results for the player request:
+
+  | Client | Result |
+  | --- | --- |
+  | IOS | Direct URLs, but each URL serves only the first 60 to 65 seconds of the content. Then HTTP 403. A wait does not change this. |
+  | ANDROID | The same limit as IOS. |
+  | ANDROID_VR | "Sign in to confirm you're not a bot" with no visitor ID. With a visitor ID, the same limit as IOS. |
+  | TVHTML5 | Refused. |
+  | MWEB, WEB embedded, TV embedded | Refused without the JavaScript of the web player. |
+  | VISIONOS with a visitor ID | Direct URLs that serve the full file, for 6 of 6 videos. H.264 up to 1080p and AAC. |
+
+  The IOS limit comes from the PO token rule of YouTube. A PO token needs the
+  BotGuard JavaScript, and iOS 6 cannot run it.
 
 ## Playback
 
@@ -66,8 +81,19 @@ The player gets one HLS playlist on `127.0.0.1`.
 The result is one player with seek, the standard controls, and correct sync.
 The server does not decode or encode media, so the CPU cost is small.
 
-When the IOS client gives an HLS manifest, the app can play it directly if
-its segments are MPEG-TS.
+The HLS manifest of the VISIONOS client puts the audio in separate
+renditions. The app does not use it.
+
+A test on the iPhone 4S with a 720p video of 340 seconds (2026-10-16) gave
+these results:
+
+- The player request, the visitor ID, and the two stream heads take 0.7 to
+  5.4 seconds. Most of the time is the network.
+- Play starts 1.3 seconds after that.
+- The app uses 0.1 to 0.2 seconds of CPU for each second of video. The
+  system decodes the video in another process.
+- A seek to the middle starts play again after 4 seconds, at the start of the
+  segment.
 
 ## Releases
 
