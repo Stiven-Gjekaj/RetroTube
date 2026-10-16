@@ -2,6 +2,7 @@
 #import "RTChannelViewController.h"
 #import "RTInnerTube.h"
 #import "RTLink.h"
+#import "RTTitles.h"
 #import "RTVideoViewController.h"
 
 @interface RTSearchViewController ()
@@ -58,6 +59,27 @@
     } else if (link.kind == RTLinkSearch) {
         [self searchFor:link.value];
     }
+}
+
+// YouTube search can give a translated title. Show the original one.
+// See RTTitles.h.
+- (void)didAddItems:(NSArray *)items {
+    NSMutableDictionary *videos = [NSMutableDictionary dictionary];
+    for (id item in items) {
+        if ([item isKindOfClass:[RTVideo class]]) videos[[item videoId]] = item;
+    }
+    __weak RTSearchViewController *weakSelf = self;
+    RTLoadOriginalTitles(videos.allKeys, ^(NSDictionary *titles) {
+        NSMutableArray *changed = [NSMutableArray array];
+        [titles enumerateKeysAndObjectsUsingBlock:^(NSString *videoId, NSString *title, BOOL *stop) {
+            RTVideo *video = videos[videoId];
+            if (![video.title isEqualToString:title]) {
+                video.title = title;
+                [changed addObject:video];
+            }
+        }];
+        [weakSelf reloadItems:changed];
+    });
 }
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
