@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
+  <!-- The History tab: a clock. iOS 6 reads only the alpha channel, so the
+       hands are holes. -->
+  <defs>
+    <mask id="hands">
+      <rect width="30" height="30" fill="#fff"/>
+      <path d="M15 7 V15 L20.5 18.5" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <circle cx="15" cy="15" r="12" fill="#000" mask="url(#hands)"/>
+</svg>

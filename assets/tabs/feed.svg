@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
+  <!-- The Feed tab: a small television with two lines of news under it.
+       iOS 6 reads only the alpha channel, so the play triangle is a hole. -->
+  <defs>
+    <mask id="hole">
+      <rect width="30" height="30" fill="#fff"/>
+      <path d="M13 6.5 L13 13.5 L18.5 10 Z" fill="#000"/>
+    </mask>
+  </defs>
+  <rect x="5" y="3" width="20" height="14" rx="3" fill="#000" mask="url(#hole)"/>
+  <rect x="5" y="20" width="20" height="3" rx="1.5" fill="#000"/>
+  <rect x="5" y="25" width="13" height="3" rx="1.5" fill="#000"/>
+</svg>
