@@ -28,6 +28,14 @@ extern NSString *const RTBrowseParamsChannelVideos;
 // Uses the language and the region of the phone.
 + (instancetype)shared;
 
+// The region of the requests. It changes to "US" when YouTube refuses the
+// region of the phone with HTTP 400. YouTube does not accept all regions,
+// for example "AL".
+@property (nonatomic, readonly, copy) NSString *region;
+
+// Returns a copy of the request with the region in its body changed.
++ (NSURLRequest *)request:(NSURLRequest *)request withRegion:(NSString *)region;
+
 - (NSURLRequest *)searchRequest:(NSString *)query params:(NSString *)params;
 - (NSURLRequest *)browseRequest:(NSString *)browseId params:(NSString *)params;
 - (NSURLRequest *)nextRequest:(NSString *)videoId;

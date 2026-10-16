@@ -17,7 +17,7 @@ static NSString *const RTVisitorDefaultsKey = @"RTVisitorData";
 
 @interface RTInnerTube ()
 @property (nonatomic, copy) NSString *language;
-@property (nonatomic, copy) NSString *region;
+@property (nonatomic, readwrite, copy) NSString *region;
 @property (nonatomic, strong) NSOperationQueue *queue;
 @end
 
@@ -126,6 +126,8 @@ static NSString *const RTVisitorDefaultsKey = @"RTVisitorData";
     NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:(NSURLResponse **)&response
                                                      error:error];
     if (!data) return nil;
+    NSURLRequest *retry = [self retryForStatus:response.statusCode request:request];
+    if (retry) return [self sendNow:retry error:error];
     id json = [NSJSONSerialization JSONObjectWithData:data options:0 error:error];
     if (response.statusCode == 200 && [json isKindOfClass:[NSDictionary class]]) return json;
     if (error) {
@@ -169,6 +171,25 @@ static NSString *const RTVisitorDefaultsKey = @"RTVisitorData";
     });
 }
 
++ (NSURLRequest *)request:(NSURLRequest *)request withRegion:(NSString *)region {
+    NSMutableDictionary *body = [NSJSONSerialization JSONObjectWithData:request.HTTPBody
+                                                                options:NSJSONReadingMutableContainers error:NULL];
+    NSMutableDictionary *client = body[@"context"][@"client"];
+    if (![client isKindOfClass:[NSMutableDictionary class]]) return request;
+    client[@"gl"] = region;
+    NSMutableURLRequest *copy = [request mutableCopy];
+    copy.HTTPBody = [NSJSONSerialization dataWithJSONObject:body options:0 error:NULL];
+    return copy;
+}
+
+// YouTube answers HTTP 400 for a region that it does not accept. Then use
+// "US" from now on, and give the request again with it. Otherwise nil.
+- (NSURLRequest *)retryForStatus:(NSInteger)status request:(NSURLRequest *)request {
+    if (status != 400 || [self.region isEqualToString:@"US"]) return nil;
+    self.region = @"US";
+    return [RTInnerTube request:request withRegion:@"US"];
+}
+
 // Sends the request. On the background queue, it parses the JSON and gives it
 // to transform. The handler gets the result of transform on the main queue.
 - (void)send:(NSURLRequest *)request transform:(id (^)(NSDictionary *json))transform
@@ -179,6 +200,11 @@ static NSString *const RTVisitorDefaultsKey = @"RTVisitorData";
         if (!error) {
             NSInteger status = [(NSHTTPURLResponse *)response statusCode];
             id parsed = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:&error] : nil;
+            NSURLRequest *retry = [self retryForStatus:status request:request];
+            if (retry) {
+                [self send:retry transform:transform handler:handler];
+                return;
+            }
             if ([parsed isKindOfClass:[NSDictionary class]] && status == 200) {
                 result = transform(parsed);
             } else if (!error) {

@@ -61,6 +61,32 @@ RT_TEST(test_visitor_request_goes_to_visitor_id) {
     RT_EXPECT([[Client() visitorRequest].URL.path hasSuffix:@"/visitor_id"]);
 }
 
+RT_TEST(test_request_with_region_changes_only_the_region) {
+    NSURLRequest *request = [Client() searchRequest:@"x" params:nil];
+    NSURLRequest *copy = [RTInnerTube request:request withRegion:@"US"];
+    RT_EQUAL(Body(copy)[@"context"][@"client"][@"gl"], @"US");
+    RT_EQUAL(Body(copy)[@"context"][@"client"][@"hl"], @"sq");
+    RT_EQUAL(Body(copy)[@"query"], @"x");
+    RT_EQUAL(copy.URL, request.URL);
+    RT_EQUAL([copy valueForHTTPHeaderField:@"User-Agent"], [request valueForHTTPHeaderField:@"User-Agent"]);
+    RT_EQUAL(Body(request)[@"context"][@"client"][@"gl"], @"AL");
+}
+
+RT_TEST(test_live_refused_region_changes_to_us) {
+    RT_LIVE_ONLY();
+    RTInnerTube *client = [[RTInnerTube alloc] initWithLanguage:@"sq" region:@"AL"];
+    __block RTPage *result = nil;
+    BOOL done = NO;
+    BOOL *donePointer = &done;
+    [client sendPage:[client searchRequest:@"daft punk" params:nil] handler:^(RTPage *page, NSError *error) {
+        result = page;
+        *donePointer = YES;
+    }];
+    RT_EXPECT(RTTestWait(&done, 30));
+    RT_EXPECT(result.items.count >= 10);
+    RT_EQUAL(client.region, @"US");
+}
+
 RT_TEST(test_live_search_gives_videos) {
     RT_LIVE_ONLY();
     __block RTPage *result = nil;
