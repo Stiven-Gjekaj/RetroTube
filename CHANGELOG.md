@@ -4,6 +4,20 @@ Every release is written here, newest first. A version is
 `MAJOR.MINOR.PATCH`. Before 1.0.0, each big addition raises the minor number.
 Each release on GitHub has the `.deb` package as an asset.
 
+## 0.4.0 (2026-10-16)
+
+Popular videos.
+
+- A Popular tab with the videos of four YouTube topics: Music, Gaming,
+  Sports, and News. The app remembers the last topic.
+- With subscriptions, the app starts on the Feed tab. Without them, it
+  starts on Popular.
+- Fixes empty pages in a region that YouTube refuses, for example Albania.
+  Before the first request, the app checks the region one time and uses US
+  if YouTube refuses it.
+- The Feed tab does not show its empty text while it loads.
+- A `retrotube://popular` link opens the Popular tab.
+
 ## 0.3.0 (2026-10-16)
 
 Subscriptions, a feed, and a history, with no account.
