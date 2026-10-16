@@ -12,6 +12,7 @@ _Native UIKit, no server, no account_
 ![Cydia](https://img.shields.io/badge/cydia-6d83a2?style=for-the-badge)
 [![MIT licence](https://img.shields.io/badge/mit_licence-3a3f47?style=for-the-badge)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/Stiven-Gjekaj/RetroTube?style=for-the-badge&label=release&color=16181c)](https://github.com/Stiven-Gjekaj/RetroTube/releases/latest)
+[![Ko-fi](https://img.shields.io/badge/ko--fi-support_this_project-f26a1b?style=for-the-badge&logo=ko-fi&logoColor=ffffff)](https://ko-fi.com/stivengjekaj)
 
 <p align="center">
   <a href="#overview"><b>Overview</b></a> |
@@ -137,6 +138,12 @@ ssh iphone4s 'ldid -S /tmp/X && /tmp/X'
 `probe/` holds three tools: `main.m` tests the TLS and the player API,
 `play.m` plays and seeks a video with no interface, and `shot.m` saves a
 screenshot.
+
+## Support
+
+If you find RetroTube useful, you can support its development here.
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/stivengjekaj)
 
 ## Licence
 
