@@ -121,8 +121,30 @@ square, next to the round Settings icon.
 `assets/brand/icon-ios6.svg` adds a corner radius of 10 of 57 pixels and a
 gloss to `assets/brand/icon.svg`. `scripts/icons.sh` renders it.
 
+## The Cydia repository
+
+The repository is [Stiven-Gjekaj/cydia](https://github.com/Stiven-Gjekaj/cydia),
+on GitHub Pages at `https://stiven-gjekaj.github.io/cydia/`.
+
+A test on the iPhone 4S (2026-10-16) gave these results:
+
+- APT reads the index and finds the package, from a copy of the files.
+- APT over HTTPS fails with SSL error -9836. The APT `http` method of iOS 6
+  is built against an old SDK, so iOS 6 gives it TLS 1.0 only. GitHub
+  accepts only TLS 1.2. Cydia uses the same method.
+- GitHub sends plain HTTP on `github.io` to HTTPS.
+
+**Choice of the owner: keep HTTPS only.** The repository serves iOS 7 and
+later, and an APT with TLS 1.2. On iOS 6, a person installs the `.deb` from
+the GitHub release with `dpkg -i`. The other choices were plain HTTP from a
+server of the owner, a custom domain with no HTTPS on GitHub Pages, and a
+package that gives APT TLS 1.2.
+
 ## Releases
 
 - The version uses semantic versioning.
 - A release gets a tag `vX.Y.Z`, notes in `CHANGELOG.md`, and the .deb
   package as an asset on GitHub.
+- After a release, the package goes into the Cydia repository:
+  `scripts/update.sh path/to/package.deb` in a clone of
+  `Stiven-Gjekaj/cydia`, then a commit and a push.
