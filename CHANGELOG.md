@@ -16,6 +16,9 @@ The video page and the new logo.
   1080p. The default is 720p.
 - A new retro logo and app icon: a wood television from the 1970s.
 - A `retrotube://watch` link opens the page of the video.
+- Fixes a search from a link at launch that failed with HTTP 400 in a region
+  that YouTube refuses. The app opened the link two times, and the second
+  request did not change to the region US.
 
 ## 0.1.0 (2026-10-16)
 
