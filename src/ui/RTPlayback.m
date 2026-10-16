@@ -61,6 +61,10 @@ static void RTShowError(NSString *title, NSString *message) {
 }
 
 + (void)playVideo:(RTVideo *)video from:(UIViewController *)controller {
+    [self playVideo:video info:nil from:controller];
+}
+
++ (void)playVideo:(RTVideo *)video info:(RTPlayerInfo *)info from:(UIViewController *)controller {
     UIView *window = controller.view.window;
     if (!window) return;
     UIView *loading = RTShowLoading(window);
@@ -69,44 +73,50 @@ static void RTShowError(NSString *title, NSString *message) {
         [loading removeFromSuperview];
         window.userInteractionEnabled = YES;
     };
-
-    [[RTInnerTube shared] loadPlayer:video.videoId handler:^(RTPlayerInfo *info, NSError *error) {
-        if (!info) {
+    if (info) {
+        [self startInfo:info controller:controller finish:finish];
+        return;
+    }
+    [[RTInnerTube shared] loadPlayer:video.videoId handler:^(RTPlayerInfo *loaded, NSError *error) {
+        if (!loaded) {
             finish();
             RTShowError(@"Cannot load the video", error.localizedDescription);
             return;
         }
-        if (![info.status isEqualToString:@"OK"]) {
-            finish();
-            RTShowError(@"The video does not play", info.reason ?: info.status);
-            return;
-        }
-        RTFormat *videoFormat = [info videoFormatForMaxHeight:[self maxHeight]] ?: info.videoFormats.lastObject;
-        if (!videoFormat) {
-            finish();
-            NSString *text = info.isLive ? @"RetroTube cannot play live videos yet."
-                                         : @"The video has no H.264 stream.";
-            RTShowError(@"The video does not play", text);
-            return;
-        }
-        RTStreamSession *session = [[RTStreamSession alloc] initWithVideo:videoFormat audio:info.audioFormat];
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-            NSError *prepareError = nil;
-            BOOL ready = [session prepare:&prepareError];
-            dispatch_async(dispatch_get_main_queue(), ^{
-                finish();
-                if (!ready) {
-                    RTShowError(@"Cannot load the video", prepareError.localizedDescription);
-                    return;
-                }
-                NSURL *url = [[RTHLSServer shared] addSource:session];
-                RTMoviePlayerViewController *player = [[RTMoviePlayerViewController alloc] initWithContentURL:url];
-                player.session = session;
-                player.moviePlayer.movieSourceType = MPMovieSourceTypeStreaming;
-                [controller presentMoviePlayerViewControllerAnimated:player];
-            });
-        });
+        [self startInfo:loaded controller:controller finish:finish];
     }];
+}
+
++ (void)startInfo:(RTPlayerInfo *)info controller:(UIViewController *)controller finish:(void (^)(void))finish {
+    if (![info.status isEqualToString:@"OK"]) {
+        finish();
+        RTShowError(@"The video does not play", info.reason ?: info.status);
+        return;
+    }
+    RTFormat *videoFormat = [info videoFormatForMaxHeight:[self maxHeight]] ?: info.videoFormats.lastObject;
+    if (!videoFormat) {
+        finish();
+        NSString *text = info.isLive ? @"RetroTube cannot play live videos yet." : @"The video has no H.264 stream.";
+        RTShowError(@"The video does not play", text);
+        return;
+    }
+    RTStreamSession *session = [[RTStreamSession alloc] initWithVideo:videoFormat audio:info.audioFormat];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        NSError *prepareError = nil;
+        BOOL ready = [session prepare:&prepareError];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            finish();
+            if (!ready) {
+                RTShowError(@"Cannot load the video", prepareError.localizedDescription);
+                return;
+            }
+            NSURL *url = [[RTHLSServer shared] addSource:session];
+            RTMoviePlayerViewController *player = [[RTMoviePlayerViewController alloc] initWithContentURL:url];
+            player.session = session;
+            player.moviePlayer.movieSourceType = MPMovieSourceTypeStreaming;
+            [controller presentMoviePlayerViewControllerAnimated:player];
+        });
+    });
 }
 
 @end
