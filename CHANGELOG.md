@@ -4,6 +4,11 @@ Every release is written here, newest first. A version is
 `MAJOR.MINOR.PATCH`. Before 1.0.0, each big addition raises the minor number.
 Each release on GitHub has the `.deb` package as an asset.
 
+## 0.2.1 (2026-10-16)
+
+- The app icon has round corners and the gloss of iOS 6. iOS 6 does not add
+  them to an app in `/Applications`, so the icon was square.
+
 ## 0.2.0 (2026-10-16)
 
 The video page and the new logo.
