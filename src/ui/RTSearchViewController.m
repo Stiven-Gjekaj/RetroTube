@@ -1,5 +1,8 @@
 #import "RTSearchViewController.h"
+#import "RTChannelViewController.h"
 #import "RTInnerTube.h"
+#import "RTLink.h"
+#import "RTPlayback.h"
 
 @interface RTSearchViewController ()
 @property (nonatomic, strong) UISearchBar *searchBar;
@@ -29,12 +32,31 @@
     if (!self.items.count && !self.firstRequest) [self.searchBar becomeFirstResponder];
 }
 
-- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
-    NSString *query = [searchBar.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-    if (!query.length) return;
-    [searchBar resignFirstResponder];
+- (void)searchFor:(NSString *)query {
+    [self view];  // Load the search bar.
+    self.searchBar.text = query;
+    [self.searchBar resignFirstResponder];
     self.firstRequest = [[RTInnerTube shared] searchRequest:query params:nil];
     [self reload];
+}
+
+// A pasted YouTube link opens its video or its channel. Other text is a search.
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    RTLink *link = RTParseText(searchBar.text);
+    if (link.kind == RTLinkVideo) {
+        [searchBar resignFirstResponder];
+        RTVideo *video = [RTVideo new];
+        video.videoId = link.value;
+        [RTPlayback playVideo:video from:self];
+    } else if (link.kind == RTLinkChannel) {
+        [searchBar resignFirstResponder];
+        RTChannel *channel = [RTChannel new];
+        channel.channelId = link.value;
+        [self.navigationController pushViewController:[[RTChannelViewController alloc] initWithChannel:channel]
+                                             animated:YES];
+    } else if (link.kind == RTLinkSearch) {
+        [self searchFor:link.value];
+    }
 }
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {

@@ -10,7 +10,7 @@
 - (instancetype)initWithChannel:(RTChannel *)channel {
     if ((self = [super init])) {
         _channel = channel;
-        self.title = channel.title;
+        self.title = channel.title ?: @"Channel";
         self.emptyText = @"This channel has no videos.";
         self.continuationEndpoint = @"browse";
         self.firstRequest = [[RTInnerTube shared] browseRequest:channel.channelId params:RTBrowseParamsChannelVideos];
