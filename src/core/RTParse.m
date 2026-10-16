@@ -58,7 +58,7 @@ static RTVideo *RTParseVideo(NSDictionary *r) {
     RTVideo *video = [RTVideo new];
     video.videoId = videoId;
     video.title = RTText(r[@"headline"]) ?: RTText(r[@"title"]);
-    id byline = r[@"shortBylineText"] ?: r[@"longBylineText"];
+    id byline = r[@"shortBylineText"] ?: r[@"longBylineText"] ?: r[@"bylineText"];
     video.channelName = RTText(byline);
     video.channelId = RTChannelIdOfRuns(byline);
     video.lengthText = RTText(r[@"lengthText"]);
@@ -66,6 +66,14 @@ static RTVideo *RTParseVideo(NSDictionary *r) {
     video.isLive = video.lengthText == nil;
     video.viewsText = RTText(r[@"shortViewCountText"]) ?: RTText(r[@"viewCountText"]);
     video.publishedText = RTText(r[@"publishedTimeText"]);
+    // A videoCardRenderer has the views and the age in one text:
+    // "20K views \u00b7 Streamed 21 hours ago".
+    NSString *metadata = RTText(r[@"metadataText"]);
+    if (metadata && !video.viewsText) {
+        NSArray *parts = [metadata componentsSeparatedByString:@" \u00b7 "];
+        video.viewsText = parts[0];
+        if (parts.count > 1 && !video.publishedText) video.publishedText = parts[1];
+    }
     video.thumbnailURL = RTThumbnailURL(r[@"thumbnail"], 320);
     return video;
 }
@@ -134,7 +142,7 @@ static NSUInteger RTWalk(id node, RTWalkState *state) {
     [(NSDictionary *)node enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop) {
         id item = nil;
         if ([key isEqualToString:@"videoWithContextRenderer"] || [key isEqualToString:@"compactVideoRenderer"] ||
-            [key isEqualToString:@"videoRenderer"]) {
+            [key isEqualToString:@"videoRenderer"] || [key isEqualToString:@"videoCardRenderer"]) {
             item = RTDict(value) ? RTParseVideo(value) : nil;
         } else if ([key isEqualToString:@"compactChannelRenderer"] || [key isEqualToString:@"channelRenderer"]) {
             item = RTDict(value) ? RTParseChannel(value) : nil;

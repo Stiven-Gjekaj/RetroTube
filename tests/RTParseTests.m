@@ -141,3 +141,21 @@ RT_TEST(test_channel_header_reads_metadata) {
 RT_TEST(test_channel_header_of_other_answer_is_nil) {
     RT_EXPECT(RTParseChannelHeader(@{ @"contents": @[] }) == nil);
 }
+
+RT_TEST(test_page_reads_video_card) {
+    NSDictionary *json = @{ @"contents": @[ @{ @"videoCardRenderer": @{
+        @"videoId": @"enMgl-s8Tk8",
+        @"title": Runs(@[ @"The Sports Bar" ]),
+        @"bylineText": @{ @"runs": @[ @{ @"text": @"talkSPORT",
+            @"navigationEndpoint": @{ @"browseEndpoint": @{ @"browseId": @"UCWw6scNyopJ0yjMu1SyOEyw" } } } ] },
+        @"metadataText": Runs(@[ @"20K views \u00b7 Streamed 21 hours ago" ]),
+        @"lengthText": Runs(@[ @"1:58:50" ]) } } ] };
+    RTVideo *video = RTParsePage(json).items[0];
+    RT_EQUAL(video.videoId, @"enMgl-s8Tk8");
+    RT_EQUAL(video.title, @"The Sports Bar");
+    RT_EQUAL(video.channelName, @"talkSPORT");
+    RT_EQUAL(video.channelId, @"UCWw6scNyopJ0yjMu1SyOEyw");
+    RT_EQUAL(video.viewsText, @"20K views");
+    RT_EQUAL(video.publishedText, @"Streamed 21 hours ago");
+    RT_EQUAL(video.lengthText, @"1:58:50");
+}
