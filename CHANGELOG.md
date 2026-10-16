@@ -2,7 +2,18 @@
 
 Every release is written here, newest first. A version is
 `MAJOR.MINOR.PATCH`. Before 1.0.0, each big addition raises the minor number.
+From 1.0.0, a fix raises the patch number, a new function raises the minor
+number, and a change that breaks the stored subscriptions or history raises
+the major number.
 Each release on GitHub has the `.deb` package as an asset.
+
+## 1.0.0 (2026-10-16)
+
+The first full release. It has the same code as 0.4.0.
+
+- The owner checked all the parts on the iPhone 4S with iOS 6.1.3: the
+  sound, Subscribe, the swipe to remove a row, Clear History, the quality
+  button, and the topics of the Popular tab. All the checks passed.
 
 ## 0.4.0 (2026-10-16)
 
