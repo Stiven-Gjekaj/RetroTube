@@ -1,6 +1,7 @@
 // Makes the requests of the InnerTube API and sends them.
 // Lists use the MWEB client, because its answers are small.
-// The player uses the IOS client, because it gives stream URLs with no cipher.
+// The player uses the VISIONOS client with a visitor ID. It gives H.264 and
+// AAC stream URLs with no cipher, and the URLs serve the full file.
 // docs/decisions.md gives the measurements.
 
 #import <Foundation/Foundation.h>
@@ -32,12 +33,23 @@ extern NSString *const RTBrowseParamsChannelVideos;
 - (NSURLRequest *)nextRequest:(NSString *)videoId;
 // endpoint is "search", "browse", or "next": the endpoint of the first page.
 - (NSURLRequest *)continuationRequest:(NSString *)token endpoint:(NSString *)endpoint;
-- (NSURLRequest *)playerRequest:(NSString *)videoId;
+- (NSURLRequest *)visitorRequest;
+- (NSURLRequest *)playerRequest:(NSString *)videoId visitorData:(NSString *)visitorData;
+
+// The visitor ID that the player requests use. It persists in the user
+// defaults. Set it to nil to get a new one.
+@property (nonatomic, copy) NSString *visitorData;
+
+// Gets a visitor ID if there is none, then sends the player request. If
+// YouTube asks for a sign-in, it gets a new visitor ID and tries one more
+// time. It blocks.
+- (RTPlayerInfo *)loadPlayer:(NSString *)videoId error:(NSError **)error;
 
 // Sends the request and parses the JSON on a background queue.
 // The handler runs on the main queue.
 - (void)send:(NSURLRequest *)request handler:(RTJSONHandler)handler;
 - (void)sendPage:(NSURLRequest *)request handler:(RTPageHandler)handler;
-- (void)sendPlayer:(NSURLRequest *)request handler:(RTPlayerHandler)handler;
+// Runs loadPlayer:error: on a background queue. The handler runs on the main queue.
+- (void)loadPlayer:(NSString *)videoId handler:(RTPlayerHandler)handler;
 
 @end

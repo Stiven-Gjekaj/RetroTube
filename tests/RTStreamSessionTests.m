@@ -194,15 +194,14 @@ RT_TEST(test_session_prepare_fails_with_reader_error) {
 
 RT_TEST(test_live_session_remuxes_a_real_video) {
     RT_LIVE_ONLY();
-    NSURLRequest *request = [[[RTInnerTube alloc] initWithLanguage:@"en" region:@"US"] playerRequest:@"jNQXAC9IVRw"];
-    NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:NULL error:NULL];
-    RTPlayerInfo *info = RTParsePlayer([NSJSONSerialization JSONObjectWithData:data options:0 error:NULL]);
+    RTPlayerInfo *info = [[[RTInnerTube alloc] initWithLanguage:@"en" region:@"US"] loadPlayer:@"a5uQMwRMHcs" error:NULL];
     RTStreamSession *session = [[RTStreamSession alloc] initWithVideo:[info videoFormatForMaxHeight:360]
                                                                 audio:info.audioFormat];
     NSError *error = nil;
     RT_EXPECT([session prepare:&error]);
     RT_EXPECT(session.segmentCount >= 2);
-    NSData *ts = [session segmentAtIndex:0 error:&error];
+    // The last segment is past the first minute of the file.
+    NSData *ts = [session segmentAtIndex:session.segmentCount - 1 error:&error];
     if (error) RTTestFail(__FILE__, __LINE__, error.description);
     RT_EXPECT(ts.length > 10000);
     RT_EQUAL_INT(ts.length % RTTSPacketSize, 0);

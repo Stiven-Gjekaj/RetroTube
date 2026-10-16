@@ -40,14 +40,25 @@ RT_TEST(test_continuation_request_goes_to_the_endpoint) {
     RT_EQUAL(Body(request)[@"context"][@"client"][@"clientName"], @"MWEB");
 }
 
-RT_TEST(test_player_request_uses_ios_client) {
-    NSURLRequest *request = [Client() playerRequest:@"abc"];
+RT_TEST(test_player_request_uses_visionos_client_with_visitor) {
+    NSURLRequest *request = [Client() playerRequest:@"abc" visitorData:@"VISITOR"];
     RT_EXPECT([request.URL.path hasSuffix:@"/player"]);
     NSDictionary *body = Body(request);
     RT_EQUAL(body[@"videoId"], @"abc");
-    RT_EQUAL(body[@"context"][@"client"][@"clientName"], @"IOS");
-    RT_EQUAL([request valueForHTTPHeaderField:@"X-YouTube-Client-Name"], @"5");
-    RT_EXPECT([[request valueForHTTPHeaderField:@"User-Agent"] hasPrefix:@"com.google.ios.youtube/"]);
+    RT_EQUAL(body[@"context"][@"client"][@"clientName"], @"VISIONOS");
+    RT_EQUAL(body[@"context"][@"client"][@"visitorData"], @"VISITOR");
+    RT_EQUAL([request valueForHTTPHeaderField:@"X-Goog-Visitor-Id"], @"VISITOR");
+    RT_EQUAL([request valueForHTTPHeaderField:@"X-YouTube-Client-Name"], @"101");
+}
+
+RT_TEST(test_player_request_without_visitor_has_no_visitor_header) {
+    NSURLRequest *request = [Client() playerRequest:@"abc" visitorData:nil];
+    RT_EXPECT([request valueForHTTPHeaderField:@"X-Goog-Visitor-Id"] == nil);
+    RT_EXPECT(Body(request)[@"context"][@"client"][@"visitorData"] == nil);
+}
+
+RT_TEST(test_visitor_request_goes_to_visitor_id) {
+    RT_EXPECT([[Client() visitorRequest].URL.path hasSuffix:@"/visitor_id"]);
 }
 
 RT_TEST(test_live_search_gives_videos) {
@@ -68,18 +79,26 @@ RT_TEST(test_live_search_gives_videos) {
     RT_EXPECT(result.continuation.length > 0);
 }
 
-RT_TEST(test_live_player_gives_h264_and_aac) {
+RT_TEST(test_live_player_gives_full_h264_and_aac) {
     RT_LIVE_ONLY();
-    __block RTPlayerInfo *result = nil;
-    BOOL done = NO;
-    BOOL *donePointer = &done;
     RTInnerTube *client = [[RTInnerTube alloc] initWithLanguage:@"en" region:@"US"];
-    [client sendPlayer:[client playerRequest:@"jNQXAC9IVRw"] handler:^(RTPlayerInfo *info, NSError *error) {
-        result = info;
-        *donePointer = YES;
-    }];
-    RT_EXPECT(RTTestWait(&done, 30));
-    RT_EQUAL(result.status, @"OK");
-    RT_EXPECT([result videoFormatForMaxHeight:720] != nil);
-    RT_EXPECT(result.audioFormat != nil);
+    NSError *error = nil;
+    RTPlayerInfo *info = [client loadPlayer:@"a5uQMwRMHcs" error:&error];
+    RT_EQUAL(info.status, @"OK");
+    RT_EXPECT(client.visitorData.length > 0);
+    RTFormat *video = [info videoFormatForMaxHeight:720];
+    RT_EXPECT(video != nil);
+    RT_EXPECT(info.audioFormat != nil);
+    // The URL must serve the end of the file. The IOS client stopped at the
+    // first minute without a PO token.
+    for (RTFormat *format in @[ video, info.audioFormat ]) {
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:format.url
+            cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:20];
+        long long end = format.contentLength - 1;
+        [request setValue:[NSString stringWithFormat:@"bytes=%lld-%lld", end - 999, end] forHTTPHeaderField:@"Range"];
+        NSHTTPURLResponse *response = nil;
+        NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:(NSURLResponse **)&response error:NULL];
+        RT_EQUAL_INT(response.statusCode, 206);
+        RT_EQUAL_INT(data.length, 1000);
+    }
 }
