@@ -13,6 +13,7 @@
 - (instancetype)init {
     if ((self = [super init])) {
         self.title = @"Search";
+        self.tabBarItem.image = [UIImage imageNamed:@"Tab-search.png"];
         self.continuationEndpoint = @"search";
         self.emptyText = @"No results.";
     }

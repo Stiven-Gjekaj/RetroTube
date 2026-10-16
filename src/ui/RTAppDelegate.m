@@ -1,15 +1,21 @@
 #import "RTAppDelegate.h"
 #import <AVFoundation/AVFoundation.h>
 #import "RTChannelViewController.h"
+#import "RTFeedViewController.h"
+#import "RTHistoryViewController.h"
+#import "RTSubscriptionsViewController.h"
+#import "RTTabBarController.h"
 #import "RTHLSServer.h"
 #import "RTLink.h"
 #import "RTVideoViewController.h"
 #import "RTNavigationController.h"
 #import "RTSearchViewController.h"
+#import "RTStore.h"
 #import "RTTheme.h"
 
 @interface RTAppDelegate ()
-@property (nonatomic, strong) UINavigationController *navigation;
+@property (nonatomic, strong) UITabBarController *tabs;
+@property (nonatomic, strong) UINavigationController *searchNavigation;
 @property (nonatomic, strong) RTSearchViewController *search;
 @end
 
@@ -23,8 +29,17 @@
 
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     self.search = [RTSearchViewController new];
-    self.navigation = [[RTNavigationController alloc] initWithRootViewController:self.search];
-    self.window.rootViewController = self.navigation;
+    self.searchNavigation = [[RTNavigationController alloc] initWithRootViewController:self.search];
+    self.tabs = [RTTabBarController new];
+    self.tabs.viewControllers = @[
+        [[RTNavigationController alloc] initWithRootViewController:[RTFeedViewController new]],
+        self.searchNavigation,
+        [[RTNavigationController alloc] initWithRootViewController:[RTSubscriptionsViewController new]],
+        [[RTNavigationController alloc] initWithRootViewController:[RTHistoryViewController new]],
+    ];
+    // With no subscriptions, the feed is empty. Start on Search.
+    if (![RTStore shared].subscriptions.count) self.tabs.selectedViewController = self.searchNavigation;
+    self.window.rootViewController = self.tabs;
     [self.window makeKeyAndVisible];
     // iOS calls application:openURL: after this method for a launch from a
     // link, so this method does not open the link.
@@ -40,18 +55,19 @@
     RTLink *link = RTParseLink(url);
     if (link.kind == RTLinkNone) return NO;
     // A link can come while the movie player shows. Close it first.
-    [self.navigation dismissViewControllerAnimated:NO completion:nil];
+    [self.tabs dismissViewControllerAnimated:NO completion:nil];
+    self.tabs.selectedViewController = self.searchNavigation;
     if (link.kind == RTLinkSearch) {
-        [self.navigation popToRootViewControllerAnimated:NO];
+        [self.searchNavigation popToRootViewControllerAnimated:NO];
         [self.search searchFor:link.value];
     } else if (link.kind == RTLinkVideo) {
         RTVideo *video = [RTVideo new];
         video.videoId = link.value;
-        [self.navigation pushViewController:[[RTVideoViewController alloc] initWithVideo:video] animated:NO];
+        [self.searchNavigation pushViewController:[[RTVideoViewController alloc] initWithVideo:video] animated:NO];
     } else if (link.kind == RTLinkChannel) {
         RTChannel *channel = [RTChannel new];
         channel.channelId = link.value;
-        [self.navigation pushViewController:[[RTChannelViewController alloc] initWithChannel:channel] animated:NO];
+        [self.searchNavigation pushViewController:[[RTChannelViewController alloc] initWithChannel:channel] animated:NO];
     }
     return YES;
 }
