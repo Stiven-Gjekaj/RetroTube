@@ -26,9 +26,9 @@ _Native UIKit, no server, no account_
 ---
 
 > [!NOTE]
-> **Version 0.2.1 is out.** It searches YouTube, shows a page for each video
-> with its related videos, shows the videos of a channel, and plays videos up
-> to 1080p.
+> **Version 0.3.0 is out.** It searches YouTube, plays videos up to 1080p,
+> and keeps your subscriptions and your history on the phone, with a feed of
+> the new videos.
 > [TODO.md](TODO.md) lists what comes before 1.0.0.
 > [docs/decisions.md](docs/decisions.md) holds each decision and its reason.
 
@@ -37,8 +37,8 @@ _Native UIKit, no server, no account_
 <table>
 <tr>
 <td width="33%" valign="top">
-<img src="assets/screenshots/search.png" alt="The search screen with results for daft punk: videos with thumbnails, durations, and a channel">
-<p align="center"><i>Search</i></p>
+<img src="assets/screenshots/feed.png" alt="The Feed tab with the newest videos of two subscriptions, and the tab bar">
+<p align="center"><i>The feed of your subscriptions</i></p>
 </td>
 <td width="33%" valign="top">
 <img src="assets/screenshots/video.png" alt="The page of a video: a large picture with a play button, the title, the views, the date, the likes, the channel, and the description">
@@ -68,7 +68,11 @@ with seek and the standard controls.
 
 ## Features
 
+- Four tabs: Feed, Search, Subscriptions, and History
 - Search for videos and channels, with more results as you scroll
+- Subscribe to channels with no account. The list stays on the phone.
+- A feed of the newest videos of your subscriptions, from their RSS feeds
+- A history of the videos that you played
 - A page for each video: the title, the views, the date, the likes, the
   channel, the description, and the related videos
 - The videos of a channel, newest first
@@ -77,9 +81,10 @@ with seek and the standard controls.
 - Paste a YouTube link into the search bar to open its video or channel
 - Open `retrotube://` links from other apps:
   `retrotube://search?q=TEXT`, `retrotube://watch?v=ID`,
-  `retrotube://channel?id=UC...`
+  `retrotube://channel?id=UC...`, and `retrotube://feed`,
+  `retrotube://subscriptions`, `retrotube://history`
 
-Before 1.0.0: local subscriptions with a feed, a history, and a Popular tab.
+Before 1.0.0: a Popular tab.
 
 ## Install
 
