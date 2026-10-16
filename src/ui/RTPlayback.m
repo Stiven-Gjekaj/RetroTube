@@ -3,6 +3,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import "RTHLSServer.h"
 #import "RTInnerTube.h"
+#import "RTStore.h"
 #import "RTStreamSession.h"
 
 NSString *const RTMaxHeightDefaultsKey = @"RTMaxHeight";
@@ -55,6 +56,27 @@ static void RTShowError(NSString *title, NSString *message) {
 
 @implementation RTPlayback
 
+// A video from a link has only its ID. Fill in the rest from the player answer.
++ (void)addToHistory:(RTVideo *)video info:(RTPlayerInfo *)info {
+    RTVideo *entry = [RTVideo new];
+    entry.videoId = video.videoId ?: info.videoId;
+    entry.title = video.title ?: info.title;
+    entry.channelName = video.channelName ?: info.author;
+    entry.channelId = video.channelId ?: info.channelId;
+    entry.viewsText = video.viewsText;
+    entry.publishedText = video.publishedText;
+    entry.isLive = video.isLive;
+    entry.lengthText = video.lengthText;
+    if (!entry.lengthText && info.lengthSeconds > 0) {
+        NSInteger s = info.lengthSeconds;
+        entry.lengthText = s >= 3600 ? [NSString stringWithFormat:@"%ld:%02ld:%02ld", (long)(s / 3600), (long)(s / 60 % 60), (long)(s % 60)]
+                                     : [NSString stringWithFormat:@"%ld:%02ld", (long)(s / 60), (long)(s % 60)];
+    }
+    NSString *thumb = [NSString stringWithFormat:@"https://i.ytimg.com/vi/%@/mqdefault.jpg", entry.videoId];
+    entry.thumbnailURL = video.thumbnailURL ?: [NSURL URLWithString:thumb];
+    [[RTStore shared] addToHistory:entry];
+}
+
 + (NSInteger)maxHeight {
     NSInteger height = [[NSUserDefaults standardUserDefaults] integerForKey:RTMaxHeightDefaultsKey];
     return height > 0 ? height : 720;
@@ -74,7 +96,7 @@ static void RTShowError(NSString *title, NSString *message) {
         window.userInteractionEnabled = YES;
     };
     if (info) {
-        [self startInfo:info controller:controller finish:finish];
+        [self startInfo:info video:video controller:controller finish:finish];
         return;
     }
     [[RTInnerTube shared] loadPlayer:video.videoId handler:^(RTPlayerInfo *loaded, NSError *error) {
@@ -83,11 +105,12 @@ static void RTShowError(NSString *title, NSString *message) {
             RTShowError(@"Cannot load the video", error.localizedDescription);
             return;
         }
-        [self startInfo:loaded controller:controller finish:finish];
+        [self startInfo:loaded video:video controller:controller finish:finish];
     }];
 }
 
-+ (void)startInfo:(RTPlayerInfo *)info controller:(UIViewController *)controller finish:(void (^)(void))finish {
++ (void)startInfo:(RTPlayerInfo *)info video:(RTVideo *)video controller:(UIViewController *)controller
+           finish:(void (^)(void))finish {
     if (![info.status isEqualToString:@"OK"]) {
         finish();
         RTShowError(@"The video does not play", info.reason ?: info.status);
@@ -115,6 +138,7 @@ static void RTShowError(NSString *title, NSString *message) {
             player.session = session;
             player.moviePlayer.movieSourceType = MPMovieSourceTypeStreaming;
             [controller presentMoviePlayerViewControllerAnimated:player];
+            [self addToHistory:video info:info];
         });
     });
 }
