@@ -107,6 +107,25 @@ RT_TEST(test_live_two_requests_with_refused_region_both_succeed) {
     RT_EQUAL_INT(failures, 0);
 }
 
+RT_TEST(test_live_refused_region_still_gives_topic_videos) {
+    RT_LIVE_ONLY();
+    // For the region AL, YouTube answers this page with HTTP 200 and no
+    // videos. The check of the region must change it to US first.
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"RTRegionAccepted-AL"];
+    RTInnerTube *client = [[RTInnerTube alloc] initWithLanguage:@"en" region:@"AL"];
+    __block RTPage *result = nil;
+    BOOL done = NO;
+    BOOL *donePointer = &done;
+    [client sendPage:[client browseRequest:@"UCYfdidRxbB8Qhf0Nx7ioOYw" params:nil] handler:^(RTPage *page, NSError *error) {
+        result = page;
+        *donePointer = YES;
+    }];
+    RT_EXPECT(RTTestWait(&done, 40));
+    RT_EXPECT(result.items.count >= 20);
+    RT_EQUAL(client.region, @"US");
+    RT_EQUAL([[NSUserDefaults standardUserDefaults] objectForKey:@"RTRegionAccepted-AL"], @NO);
+}
+
 RT_TEST(test_live_search_gives_videos) {
     RT_LIVE_ONLY();
     __block RTPage *result = nil;

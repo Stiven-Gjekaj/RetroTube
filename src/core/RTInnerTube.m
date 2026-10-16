@@ -19,6 +19,8 @@ static NSString *const RTVisitorDefaultsKey = @"RTVisitorData";
 @property (nonatomic, copy) NSString *language;
 @property (nonatomic, readwrite, copy) NSString *region;
 @property (nonatomic, strong) NSOperationQueue *queue;
+@property (nonatomic, strong) NSLock *regionLock;
+@property (nonatomic) BOOL regionChecked;
 @end
 
 @implementation RTInnerTube
@@ -31,6 +33,8 @@ static NSString *const RTVisitorDefaultsKey = @"RTVisitorData";
         _region = [region copy] ?: @"US";
         _queue = [NSOperationQueue new];
         _queue.maxConcurrentOperationCount = 4;
+        _regionLock = [NSLock new];
+        _regionChecked = [_region isEqualToString:@"US"];
         _visitorData = [[NSUserDefaults standardUserDefaults] stringForKey:RTVisitorDefaultsKey];
     }
     return self;
@@ -122,6 +126,7 @@ static NSString *const RTVisitorDefaultsKey = @"RTVisitorData";
 
 // Sends a request and gives the JSON answer. It blocks.
 - (NSDictionary *)sendNow:(NSURLRequest *)request error:(NSError **)error {
+    request = [self requestForCheckedRegion:request];
     NSHTTPURLResponse *response = nil;
     NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:(NSURLResponse **)&response
                                                      error:error];
@@ -182,6 +187,42 @@ static NSString *const RTVisitorDefaultsKey = @"RTVisitorData";
     return copy;
 }
 
+// Checks one time that YouTube accepts the region. It blocks, so call it
+// only on a background queue. Other threads wait for the first check.
+- (void)checkRegion {
+    [self.regionLock lock];
+    if (!self.regionChecked) {
+        NSString *key = [@"RTRegionAccepted-" stringByAppendingString:self.region];
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        id known = [defaults objectForKey:key];
+        BOOL accepted;
+        if (known) {
+            accepted = [known boolValue];
+        } else {
+            NSHTTPURLResponse *response = nil;
+            NSData *data = [NSURLConnection sendSynchronousRequest:[self searchRequest:@"a" params:nil]
+                                                 returningResponse:(NSURLResponse **)&response error:NULL];
+            accepted = !(data && response.statusCode == 400);
+            // Keep only an answer from YouTube, not a network failure.
+            if (data) [defaults setBool:accepted forKey:key];
+        }
+        if (!accepted) self.region = @"US";
+        self.regionChecked = YES;
+    }
+    [self.regionLock unlock];
+}
+
+// Gives the request with the checked region.
+- (NSURLRequest *)requestForCheckedRegion:(NSURLRequest *)request {
+    [self checkRegion];
+    NSDictionary *body = request.HTTPBody ? [NSJSONSerialization JSONObjectWithData:request.HTTPBody options:0 error:NULL] : nil;
+    id region = [body isKindOfClass:[NSDictionary class]] ? body[@"context"][@"client"][@"gl"] : nil;
+    if ([region isKindOfClass:[NSString class]] && ![region isEqualToString:self.region]) {
+        return [RTInnerTube request:request withRegion:self.region];
+    }
+    return request;
+}
+
 // YouTube answers HTTP 400 for a region that it does not accept. Then use
 // "US" from now on, and give the request again with it. Otherwise nil.
 // It reads the region of the request itself, because another request can
@@ -199,6 +240,13 @@ static NSString *const RTVisitorDefaultsKey = @"RTVisitorData";
 // to transform. The handler gets the result of transform on the main queue.
 - (void)send:(NSURLRequest *)request transform:(id (^)(NSDictionary *json))transform
      handler:(void (^)(id result, NSError *error))handler {
+    if (!self.regionChecked) {
+        [self.queue addOperationWithBlock:^{
+            [self send:[self requestForCheckedRegion:request] transform:transform handler:handler];
+        }];
+        return;
+    }
+    request = [self requestForCheckedRegion:request];
     [NSURLConnection sendAsynchronousRequest:request queue:self.queue
                            completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
         id result = nil;
