@@ -26,9 +26,9 @@ _Native UIKit, no server, no account_
 ---
 
 > [!NOTE]
-> **Version 0.3.0 is out.** It searches YouTube, plays videos up to 1080p,
-> and keeps your subscriptions and your history on the phone, with a feed of
-> the new videos.
+> **Version 0.4.0 is out.** It shows popular videos, searches YouTube, plays
+> videos up to 1080p, and keeps your subscriptions and your history on the
+> phone, with a feed of the new videos.
 > [TODO.md](TODO.md) lists what comes before 1.0.0.
 > [docs/decisions.md](docs/decisions.md) holds each decision and its reason.
 
@@ -45,8 +45,8 @@ _Native UIKit, no server, no account_
 <p align="center"><i>The page of a video</i></p>
 </td>
 <td width="33%" valign="top">
-<img src="assets/screenshots/player.png" alt="A video that plays in the movie player of iOS 6">
-<p align="center"><i>The movie player of iOS 6</i></p>
+<img src="assets/screenshots/popular.png" alt="The Popular tab with the Music topic: a list of music videos, and the five tabs">
+<p align="center"><i>Popular videos by topic</i></p>
 </td>
 </tr>
 </table>
@@ -68,7 +68,8 @@ with seek and the standard controls.
 
 ## Features
 
-- Four tabs: Feed, Search, Subscriptions, and History
+- Five tabs: Popular, Feed, Search, Subscriptions, and History
+- Popular videos in four topics: Music, Gaming, Sports, and News
 - Search for videos and channels, with more results as you scroll
 - Subscribe to channels with no account. The list stays on the phone.
 - A feed of the newest videos of your subscriptions, from their RSS feeds
@@ -81,10 +82,10 @@ with seek and the standard controls.
 - Paste a YouTube link into the search bar to open its video or channel
 - Open `retrotube://` links from other apps:
   `retrotube://search?q=TEXT`, `retrotube://watch?v=ID`,
-  `retrotube://channel?id=UC...`, and `retrotube://feed`,
-  `retrotube://subscriptions`, `retrotube://history`
+  `retrotube://channel?id=UC...`, and `retrotube://popular`,
+  `retrotube://feed`, `retrotube://subscriptions`, `retrotube://history`
 
-Before 1.0.0: a Popular tab.
+Version 1.0.0 comes after a full check of all the parts on the iPhone 4S.
 
 ## Install
 
