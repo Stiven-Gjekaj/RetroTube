@@ -162,3 +162,37 @@ RTPage *RTParsePage(NSDictionary *json) {
     page.continuation = state.continuation;
     return page;
 }
+
+// Collects each string under the key "content" in the tree.
+static void RTCollectContent(id node, NSMutableArray *texts) {
+    if (RTDict(node)) {
+        [(NSDictionary *)node enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop) {
+            if ([key isEqualToString:@"content"] && RTString(value)) [texts addObject:value];
+            else RTCollectContent(value, texts);
+        }];
+    } else if (RTArray(node)) {
+        for (id child in node) RTCollectContent(child, texts);
+    }
+}
+
+RTChannel *RTParseChannelHeader(NSDictionary *json) {
+    NSDictionary *metadata = RTDict(RTDict(json[@"metadata"])[@"channelMetadataRenderer"]);
+    NSString *channelId = RTString(metadata[@"externalId"]);
+    if (!channelId) return nil;
+    RTChannel *channel = [RTChannel new];
+    channel.channelId = channelId;
+    channel.title = RTString(metadata[@"title"]);
+    NSString *avatar = RTThumbnailURL(metadata[@"avatar"], 10000).absoluteString;
+    // The picture is 900 pixels. Ask for 176 pixels.
+    avatar = [avatar stringByReplacingOccurrencesOfString:@"=s900-" withString:@"=s176-"];
+    if (avatar) channel.avatarURL = [NSURL URLWithString:avatar];
+    NSMutableArray *texts = [NSMutableArray array];
+    RTCollectContent(json[@"header"], texts);
+    for (NSString *text in texts) {
+        if ([text hasPrefix:@"@"] && !channel.handle) channel.handle = text;
+        else if ([text rangeOfString:@"subscriber"].location != NSNotFound && !channel.subscribersText) {
+            channel.subscribersText = text;
+        }
+    }
+    return channel;
+}

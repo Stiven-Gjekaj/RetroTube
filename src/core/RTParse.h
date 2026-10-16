@@ -16,3 +16,7 @@ NSURL *RTThumbnailURL(id thumbnailObject, NSInteger maxWidth);
 // /search, /browse, or /next, and of their continuation answers.
 // The items are in the order of the answer, with no duplicates.
 RTPage *RTParsePage(NSDictionary *json);
+
+// Reads the channel of a /browse answer of a channel page: its ID, title,
+// handle, subscribers, and a small picture. Returns nil if there is none.
+RTChannel *RTParseChannelHeader(NSDictionary *json);

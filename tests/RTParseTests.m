@@ -121,3 +121,23 @@ RT_TEST(test_page_ignores_values_of_wrong_type) {
                                             @{ @"compactChannelRenderer": @[] } ] };
     RT_EQUAL_INT(RTParsePage(json).items.count, 0);
 }
+
+RT_TEST(test_channel_header_reads_metadata) {
+    NSDictionary *json = @{
+        @"metadata": @{ @"channelMetadataRenderer": @{ @"externalId": @"UC_kRDKYrUlrbtrSiyu5Tflg", @"title": @"Daft Punk",
+            @"avatar": @{ @"thumbnails": @[ @{ @"url": @"https://yt3.googleusercontent.com/X=s900-c-k", @"width": @900 } ] } } },
+        @"header": @{ @"pageHeaderRenderer": @{ @"content": @{ @"rows": @[
+            @{ @"parts": @[ @{ @"text": @{ @"content": @"@daftpunk" } } ] },
+            @{ @"parts": @[ @{ @"text": @{ @"content": @"7.2M subscribers" } },
+                            @{ @"text": @{ @"content": @"351 videos" } } ] } ] } } } };
+    RTChannel *channel = RTParseChannelHeader(json);
+    RT_EQUAL(channel.channelId, @"UC_kRDKYrUlrbtrSiyu5Tflg");
+    RT_EQUAL(channel.title, @"Daft Punk");
+    RT_EQUAL(channel.handle, @"@daftpunk");
+    RT_EQUAL(channel.subscribersText, @"7.2M subscribers");
+    RT_EQUAL(channel.avatarURL.absoluteString, @"https://yt3.googleusercontent.com/X=s176-c-k");
+}
+
+RT_TEST(test_channel_header_of_other_answer_is_nil) {
+    RT_EXPECT(RTParseChannelHeader(@{ @"contents": @[] }) == nil);
+}
