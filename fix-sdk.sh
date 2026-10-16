@@ -23,3 +23,11 @@ MOVED="_NSCachedURLResponse, _NSHTTPCookie, _NSHTTPCookieStorage, _NSHTTPURLResp
 if ! grep -q '_NSURLConnection,' "$FOUNDATION"; then
     MOVED="$MOVED" perl -0pi -e 's/(objc-classes:\s*\[\s*)/$1$ENV{MOVED}/' "$FOUNDATION"
 fi
+
+# The 9.3 SDK has no stub entry for memcpy, memmove, memset, and bzero.
+# iOS 6 exports them from libsystem_c, and libSystem re-exports libsystem_c.
+# Add them to the libsystem_c stub, so that code that calls them links.
+LIBC="$SDK/usr/lib/system/libsystem_c.tbd"
+if ! grep -q '_memcpy,' "$LIBC"; then
+    perl -0pi -e 's/(symbols:\s*\[\s*)/$1_bzero, _memcpy, _memmove, _memset, /' "$LIBC"
+fi
