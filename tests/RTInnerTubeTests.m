@@ -87,6 +87,26 @@ RT_TEST(test_live_refused_region_changes_to_us) {
     RT_EQUAL(client.region, @"US");
 }
 
+RT_TEST(test_live_two_requests_with_refused_region_both_succeed) {
+    RT_LIVE_ONLY();
+    RTInnerTube *client = [[RTInnerTube alloc] initWithLanguage:@"en" region:@"AL"];
+    // Both requests have the region AL. The first answer changes the region
+    // of the client. The second request must still try again with US.
+    NSURLRequest *first = [client searchRequest:@"retro tv" params:nil];
+    NSURLRequest *second = [client searchRequest:@"retro tv" params:nil];
+    __block int count = 0, failures = 0;
+    BOOL done = NO;
+    BOOL *donePointer = &done;
+    void (^handler)(RTPage *, NSError *) = ^(RTPage *page, NSError *error) {
+        if (error || !page.items.count) failures++;
+        if (++count == 2) *donePointer = YES;
+    };
+    [client sendPage:first handler:handler];
+    [client sendPage:second handler:handler];
+    RT_EXPECT(RTTestWait(&done, 30));
+    RT_EQUAL_INT(failures, 0);
+}
+
 RT_TEST(test_live_search_gives_videos) {
     RT_LIVE_ONLY();
     __block RTPage *result = nil;

@@ -184,8 +184,13 @@ static NSString *const RTVisitorDefaultsKey = @"RTVisitorData";
 
 // YouTube answers HTTP 400 for a region that it does not accept. Then use
 // "US" from now on, and give the request again with it. Otherwise nil.
+// It reads the region of the request itself, because another request can
+// change self.region while this one is on the network.
 - (NSURLRequest *)retryForStatus:(NSInteger)status request:(NSURLRequest *)request {
-    if (status != 400 || [self.region isEqualToString:@"US"]) return nil;
+    if (status != 400) return nil;
+    NSDictionary *body = [NSJSONSerialization JSONObjectWithData:request.HTTPBody options:0 error:NULL];
+    id region = [body isKindOfClass:[NSDictionary class]] ? body[@"context"][@"client"][@"gl"] : nil;
+    if (![region isKindOfClass:[NSString class]] || [region isEqualToString:@"US"]) return nil;
     self.region = @"US";
     return [RTInnerTube request:request withRegion:@"US"];
 }
