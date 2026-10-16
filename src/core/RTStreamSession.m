@@ -9,8 +9,11 @@ static NSError *RTSessionError(NSString *text) {
 NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
     NSError *last = nil;
     for (int attempt = 0; attempt < 3; attempt++) {
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
-        request.timeoutInterval = 20;
+        // iOS 6 can give a cached answer for another range of the same URL.
+        // So a range request does not use the cache.
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
+                                                               cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
+                                                           timeoutInterval:20];
         [request setValue:[NSString stringWithFormat:@"bytes=%llu-%llu", start, end] forHTTPHeaderField:@"Range"];
         NSHTTPURLResponse *response = nil;
         NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:(NSURLResponse **)&response
