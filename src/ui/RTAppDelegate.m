@@ -56,6 +56,13 @@
     if (link.kind == RTLinkNone) return NO;
     // A link can come while the movie player shows. Close it first.
     [self.tabs dismissViewControllerAnimated:NO completion:nil];
+    if (link.kind == RTLinkTab) {
+        NSUInteger index = [@[ @"feed", @"search", @"subscriptions", @"history" ] indexOfObject:link.value];
+        UINavigationController *navigation = self.tabs.viewControllers[index];
+        [navigation popToRootViewControllerAnimated:NO];
+        self.tabs.selectedViewController = navigation;
+        return YES;
+    }
     self.tabs.selectedViewController = self.searchNavigation;
     if (link.kind == RTLinkSearch) {
         [self.searchNavigation popToRootViewControllerAnimated:NO];

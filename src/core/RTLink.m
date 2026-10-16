@@ -48,6 +48,7 @@ RTLink *RTParseLink(NSURL *url) {
         if ([host isEqualToString:@"search"]) return RTMakeLink(RTLinkSearch, query[@"q"]);
         if ([host isEqualToString:@"watch"]) return RTMakeLink(RTLinkVideo, RTVideoId(query[@"v"]));
         if ([host isEqualToString:@"channel"]) return RTMakeLink(RTLinkChannel, RTChannelId(query[@"id"]));
+        if ([@[ @"feed", @"subscriptions", @"history" ] containsObject:host]) return RTMakeLink(RTLinkTab, host);
         return RTMakeLink(RTLinkNone, nil);
     }
     if (![scheme isEqualToString:@"https"] && ![scheme isEqualToString:@"http"]) return RTMakeLink(RTLinkNone, nil);

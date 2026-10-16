@@ -8,6 +8,7 @@ typedef NS_ENUM(NSInteger, RTLinkKind) {
     RTLinkSearch,
     RTLinkVideo,
     RTLinkChannel,
+    RTLinkTab,  // The value is "feed", "subscriptions", or "history".
 };
 
 @interface RTLink : NSObject
@@ -19,6 +20,7 @@ typedef NS_ENUM(NSInteger, RTLinkKind) {
 //   retrotube://search?q=QUERY
 //   retrotube://watch?v=ID
 //   retrotube://channel?id=UC...
+//   retrotube://feed, retrotube://subscriptions, retrotube://history
 //   https://www.youtube.com/watch?v=ID (also m.youtube.com and music.youtube.com)
 //   https://youtu.be/ID
 //   https://www.youtube.com/shorts/ID, /live/ID, /embed/ID

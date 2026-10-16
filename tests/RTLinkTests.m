@@ -19,6 +19,13 @@ RT_TEST(test_link_reads_retrotube_links) {
     RT_LINK(Link(@"retrotube://channel?id=UC_kRDKYrUlrbtrSiyu5Tflg"), RTLinkChannel, @"UC_kRDKYrUlrbtrSiyu5Tflg");
 }
 
+RT_TEST(test_link_reads_tab_links) {
+    RT_LINK(Link(@"retrotube://feed"), RTLinkTab, @"feed");
+    RT_LINK(Link(@"retrotube://subscriptions"), RTLinkTab, @"subscriptions");
+    RT_LINK(Link(@"retrotube://history"), RTLinkTab, @"history");
+    RT_LINK(Link(@"retrotube://settings"), RTLinkNone, nil);
+}
+
 RT_TEST(test_link_reads_youtube_links) {
     RT_LINK(Link(@"https://www.youtube.com/watch?v=jNQXAC9IVRw&t=10s"), RTLinkVideo, @"jNQXAC9IVRw");
     RT_LINK(Link(@"https://m.youtube.com/watch?feature=share&v=jNQXAC9IVRw"), RTLinkVideo, @"jNQXAC9IVRw");
