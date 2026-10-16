@@ -20,6 +20,7 @@ RT_TEST(test_link_reads_retrotube_links) {
 }
 
 RT_TEST(test_link_reads_tab_links) {
+    RT_LINK(Link(@"retrotube://popular"), RTLinkTab, @"popular");
     RT_LINK(Link(@"retrotube://feed"), RTLinkTab, @"feed");
     RT_LINK(Link(@"retrotube://subscriptions"), RTLinkTab, @"subscriptions");
     RT_LINK(Link(@"retrotube://history"), RTLinkTab, @"history");

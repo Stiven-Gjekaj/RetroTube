@@ -7,6 +7,7 @@
 #import "RTTabBarController.h"
 #import "RTHLSServer.h"
 #import "RTLink.h"
+#import "RTPopularViewController.h"
 #import "RTVideoViewController.h"
 #import "RTNavigationController.h"
 #import "RTSearchViewController.h"
@@ -32,13 +33,14 @@
     self.searchNavigation = [[RTNavigationController alloc] initWithRootViewController:self.search];
     self.tabs = [RTTabBarController new];
     self.tabs.viewControllers = @[
+        [[RTNavigationController alloc] initWithRootViewController:[RTPopularViewController new]],
         [[RTNavigationController alloc] initWithRootViewController:[RTFeedViewController new]],
         self.searchNavigation,
         [[RTNavigationController alloc] initWithRootViewController:[RTSubscriptionsViewController new]],
         [[RTNavigationController alloc] initWithRootViewController:[RTHistoryViewController new]],
     ];
-    // With no subscriptions, the feed is empty. Start on Search.
-    if (![RTStore shared].subscriptions.count) self.tabs.selectedViewController = self.searchNavigation;
+    // With subscriptions, start on the feed. Without them, on Popular.
+    if ([RTStore shared].subscriptions.count) self.tabs.selectedIndex = 1;
     self.window.rootViewController = self.tabs;
     [self.window makeKeyAndVisible];
     // iOS calls application:openURL: after this method for a launch from a
@@ -57,7 +59,7 @@
     // A link can come while the movie player shows. Close it first.
     [self.tabs dismissViewControllerAnimated:NO completion:nil];
     if (link.kind == RTLinkTab) {
-        NSUInteger index = [@[ @"feed", @"search", @"subscriptions", @"history" ] indexOfObject:link.value];
+        NSUInteger index = [@[ @"popular", @"feed", @"search", @"subscriptions", @"history" ] indexOfObject:link.value];
         UINavigationController *navigation = self.tabs.viewControllers[index];
         [navigation popToRootViewControllerAnimated:NO];
         self.tabs.selectedViewController = navigation;
