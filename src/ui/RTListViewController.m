@@ -78,6 +78,18 @@ static const NSUInteger RTLoadMoreDistance = 5;
     return page.items;
 }
 
+- (void)didAddItems:(NSArray *)items {
+}
+
+- (void)reloadItems:(NSArray *)items {
+    NSMutableArray *paths = [NSMutableArray array];
+    for (id item in items) {
+        NSUInteger index = [self.list indexOfObjectIdenticalTo:item];
+        if (index != NSNotFound) [paths addObject:[NSIndexPath indexPathForRow:(NSInteger)index inSection:0]];
+    }
+    if (paths.count) [self.tableView reloadRowsAtIndexPaths:paths withRowAnimation:UITableViewRowAnimationNone];
+}
+
 - (id)resultFromJSON:(NSDictionary *)json {
     return RTParsePage(json);
 }
@@ -124,6 +136,7 @@ static const NSUInteger RTLoadMoreDistance = 5;
                 [controller.tableView insertRowsAtIndexPaths:paths withRowAnimation:UITableViewRowAnimationNone];
             }
             if (!controller.list.count) controller.messageLabel.text = controller.emptyText;
+            if (added.count) [controller didAddItems:added];
         }
         [controller updateFooter];
     }];
