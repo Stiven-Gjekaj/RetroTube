@@ -6,6 +6,7 @@
 #import "RTNext.h"
 #import "RTPlayback.h"
 #import "RTPlayer.h"
+#import "RTTheme.h"
 
 static const CGFloat RTPadding = 10;
 
@@ -155,7 +156,7 @@ static const CGFloat RTPadding = 10;
     [self.header addSubview:self.descriptionLabel];
     self.moreButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.moreButton.titleLabel.font = [UIFont boldSystemFontOfSize:13];
-    [self.moreButton setTitleColor:[UIColor colorWithRed:0.2 green:0.35 blue:0.65 alpha:1] forState:UIControlStateNormal];
+    [self.moreButton setTitleColor:RTAmberColor() forState:UIControlStateNormal];
     self.moreButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
     [self.moreButton addTarget:self action:@selector(toggleDescription) forControlEvents:UIControlEventTouchUpInside];
     [self.header addSubview:self.moreButton];
@@ -234,7 +235,8 @@ static UIView *RTLine(CGFloat y) {
 
     UILabel *related = [self label:[UIFont boldSystemFontOfSize:13] color:[UIColor whiteColor] lines:1];
     related.tag = 1;
-    related.backgroundColor = [UIColor colorWithRed:0.47 green:0.53 blue:0.62 alpha:1];
+    related.backgroundColor = RTWalnutColor();
+    related.textColor = RTCreamColor();
     related.text = @"  Related videos";
     related.frame = CGRectMake(0, y, 320, 22);
     [self.header addSubview:related];

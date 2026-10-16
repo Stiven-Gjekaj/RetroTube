@@ -6,6 +6,7 @@
 #import "RTVideoViewController.h"
 #import "RTNavigationController.h"
 #import "RTSearchViewController.h"
+#import "RTTheme.h"
 
 @interface RTAppDelegate ()
 @property (nonatomic, strong) UINavigationController *navigation;
@@ -18,6 +19,7 @@
     // Play the sound of a video also when the ring switch is off.
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:NULL];
     [[RTHLSServer shared] start:NULL];
+    RTApplyTheme();
 
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     self.search = [RTSearchViewController new];
