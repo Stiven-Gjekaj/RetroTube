@@ -100,6 +100,12 @@ You need an iPhone, iPod touch, or iPad with iOS 6 and a jailbreak.
 The RetroTube icon comes on the home screen. To remove the app:
 `dpkg -r io.github.stivengjekaj.retrotube`.
 
+On iOS 7 or later, or with an APT that has TLS 1.2, you can also add the
+Cydia source `https://stiven-gjekaj.github.io/cydia/`. Cydia then shows the
+updates. Cydia on iOS 6 cannot read it, because its APT stops at TLS 1.0
+and GitHub accepts only TLS 1.2. See
+[the repository](https://github.com/Stiven-Gjekaj/cydia).
+
 ## Build
 
 You need a Mac with Xcode and the iOS 9.3 SDK of Theos.
