@@ -26,10 +26,10 @@ _Native UIKit, no server, no account_
 ---
 
 > [!NOTE]
-> **Version 0.4.0 is out.** It shows popular videos, searches YouTube, plays
+> **Version 1.0.0 is out.** It shows popular videos, searches YouTube, plays
 > videos up to 1080p, and keeps your subscriptions and your history on the
 > phone, with a feed of the new videos.
-> [TODO.md](TODO.md) lists what comes before 1.0.0.
+> [TODO.md](TODO.md) lists the known problems.
 > [docs/decisions.md](docs/decisions.md) holds each decision and its reason.
 
 ---
@@ -85,7 +85,7 @@ with seek and the standard controls.
   `retrotube://channel?id=UC...`, and `retrotube://popular`,
   `retrotube://feed`, `retrotube://subscriptions`, `retrotube://history`
 
-Version 1.0.0 comes after a full check of all the parts on the iPhone 4S.
+Version 1.0.0 was checked on an iPhone 4S with iOS 6.1.3.
 
 ## Install
 
