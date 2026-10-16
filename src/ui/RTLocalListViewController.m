@@ -4,6 +4,7 @@
 #import "RTVideoViewController.h"
 
 @interface RTLocalListViewController ()
+@property (nonatomic, strong) UIView *emptyView;
 @property (nonatomic, strong) UILabel *emptyLabel;
 @end
 
@@ -16,7 +17,12 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.tableView.rowHeight = [RTVideoCell height];
+    // The table makes its footer as wide as itself, so the label is inside a
+    // view, with a margin on each side.
+    self.emptyView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 100)];
     self.emptyLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 0, 280, 100)];
+    self.emptyLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [self.emptyView addSubview:self.emptyLabel];
     self.emptyLabel.textAlignment = NSTextAlignmentCenter;
     self.emptyLabel.textColor = [UIColor grayColor];
     self.emptyLabel.numberOfLines = 0;
@@ -33,9 +39,19 @@
     }
 }
 
+- (void)setLoading:(BOOL)loading {
+    _loading = loading;
+    if (self.isViewLoaded) [self updateFooter];
+}
+
+- (void)setEmptyText:(NSString *)emptyText {
+    _emptyText = [emptyText copy];
+    if (self.isViewLoaded) [self updateFooter];
+}
+
 - (void)updateFooter {
     self.emptyLabel.text = self.emptyText;
-    self.tableView.tableFooterView = self.items.count ? [UIView new] : self.emptyLabel;
+    self.tableView.tableFooterView = (self.items.count || self.loading) ? [UIView new] : self.emptyView;
 }
 
 - (BOOL)canDeleteItems {

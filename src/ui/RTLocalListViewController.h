@@ -7,6 +7,8 @@
 
 @property (nonatomic, copy) NSArray *items;
 @property (nonatomic, copy) NSString *emptyText;
+// While YES, the empty text does not show.
+@property (nonatomic) BOOL loading;
 
 // Subclasses can let the person delete a row. The default is NO.
 - (BOOL)canDeleteItems;

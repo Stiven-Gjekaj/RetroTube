@@ -4,7 +4,6 @@
 
 @interface RTFeedViewController ()
 @property (nonatomic, copy) NSArray *loadedIds;  // The subscriptions of the last load
-@property (nonatomic) BOOL loading;
 @end
 
 @implementation RTFeedViewController
