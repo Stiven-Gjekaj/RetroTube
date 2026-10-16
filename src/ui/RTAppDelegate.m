@@ -3,7 +3,7 @@
 #import "RTChannelViewController.h"
 #import "RTHLSServer.h"
 #import "RTLink.h"
-#import "RTPlayback.h"
+#import "RTVideoViewController.h"
 #import "RTNavigationController.h"
 #import "RTSearchViewController.h"
 
@@ -45,10 +45,7 @@
     } else if (link.kind == RTLinkVideo) {
         RTVideo *video = [RTVideo new];
         video.videoId = link.value;
-        // Wait one turn of the run loop, so that the window is ready at launch.
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [RTPlayback playVideo:video from:self.navigation.topViewController];
-        });
+        [self.navigation pushViewController:[[RTVideoViewController alloc] initWithVideo:video] animated:NO];
     } else if (link.kind == RTLinkChannel) {
         RTChannel *channel = [RTChannel new];
         channel.channelId = link.value;

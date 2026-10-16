@@ -2,7 +2,7 @@
 #import "RTChannelViewController.h"
 #import "RTInnerTube.h"
 #import "RTLink.h"
-#import "RTPlayback.h"
+#import "RTVideoViewController.h"
 
 @interface RTSearchViewController ()
 @property (nonatomic, strong) UISearchBar *searchBar;
@@ -47,7 +47,7 @@
         [searchBar resignFirstResponder];
         RTVideo *video = [RTVideo new];
         video.videoId = link.value;
-        [RTPlayback playVideo:video from:self];
+        [self.navigationController pushViewController:[[RTVideoViewController alloc] initWithVideo:video] animated:YES];
     } else if (link.kind == RTLinkChannel) {
         [searchBar resignFirstResponder];
         RTChannel *channel = [RTChannel new];

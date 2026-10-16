@@ -2,8 +2,8 @@
 #import "RTChannelViewController.h"
 #import "RTInnerTube.h"
 #import "RTParse.h"
-#import "RTPlayback.h"
 #import "RTVideoCell.h"
+#import "RTVideoViewController.h"
 
 // Load the next page when one of the last rows shows.
 static const NSUInteger RTLoadMoreDistance = 5;
@@ -159,7 +159,7 @@ static const NSUInteger RTLoadMoreDistance = 5;
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     id item = self.list[(NSUInteger)indexPath.row];
     if ([item isKindOfClass:[RTVideo class]]) {
-        [RTPlayback playVideo:item from:self];
+        [self.navigationController pushViewController:[[RTVideoViewController alloc] initWithVideo:item] animated:YES];
     } else {
         [self.navigationController pushViewController:[[RTChannelViewController alloc] initWithChannel:item]
                                              animated:YES];
