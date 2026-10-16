@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/icon.svg" alt="RetroTube" width="140">
+<img src="assets/brand/logo.svg" alt="RetroTube" width="440">
 
 ### A YouTube client for the iPhone 4S on iOS 6
 
@@ -26,8 +26,9 @@ _Native UIKit, no server, no account_
 ---
 
 > [!NOTE]
-> **Version 0.1.0 is out.** It searches YouTube, shows the videos of a
-> channel, and plays videos up to 720p.
+> **Version 0.2.0 is out.** It searches YouTube, shows a page for each video
+> with its related videos, shows the videos of a channel, and plays videos up
+> to 1080p.
 > [TODO.md](TODO.md) lists what comes before 1.0.0.
 > [docs/decisions.md](docs/decisions.md) holds each decision and its reason.
 
@@ -40,8 +41,8 @@ _Native UIKit, no server, no account_
 <p align="center"><i>Search</i></p>
 </td>
 <td width="33%" valign="top">
-<img src="assets/screenshots/channel.png" alt="The videos of a channel, newest first">
-<p align="center"><i>The videos of a channel</i></p>
+<img src="assets/screenshots/video.png" alt="The page of a video: a large picture with a play button, the title, the views, the date, the likes, the channel, and the description">
+<p align="center"><i>The page of a video</i></p>
 </td>
 <td width="33%" valign="top">
 <img src="assets/screenshots/player.png" alt="A video that plays in the movie player of iOS 6">
@@ -68,15 +69,17 @@ with seek and the standard controls.
 ## Features
 
 - Search for videos and channels, with more results as you scroll
+- A page for each video: the title, the views, the date, the likes, the
+  channel, the description, and the related videos
 - The videos of a channel, newest first
-- Play videos in H.264 up to 720p, with sound, seek, and full screen
+- Play videos in H.264 with sound, seek, and full screen
+- Choose the highest quality, from 240p to 1080p. The default is 720p.
 - Paste a YouTube link into the search bar to open its video or channel
 - Open `retrotube://` links from other apps:
   `retrotube://search?q=TEXT`, `retrotube://watch?v=ID`,
   `retrotube://channel?id=UC...`
 
-Before 1.0.0: a video page with the details and the related videos, local
-subscriptions with a feed, a history, and a Popular tab.
+Before 1.0.0: local subscriptions with a feed, a history, and a Popular tab.
 
 ## Install
 
