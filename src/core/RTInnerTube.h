@@ -57,6 +57,10 @@ extern NSString *const RTBrowseParamsChannelVideos;
 // The handler runs on the main queue.
 - (void)send:(NSURLRequest *)request handler:(RTJSONHandler)handler;
 - (void)sendPage:(NSURLRequest *)request handler:(RTPageHandler)handler;
+// Sends the request. transform runs on a background queue with the JSON
+// answer. The handler gets its result on the main queue.
+- (void)send:(NSURLRequest *)request transform:(id (^)(NSDictionary *json))transform
+     handler:(void (^)(id result, NSError *error))handler;
 // Runs loadPlayer:error: on a background queue. The handler runs on the main queue.
 - (void)loadPlayer:(NSString *)videoId handler:(RTPlayerHandler)handler;
 

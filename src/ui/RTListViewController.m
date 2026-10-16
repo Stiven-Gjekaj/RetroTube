@@ -1,6 +1,7 @@
 #import "RTListViewController.h"
 #import "RTChannelViewController.h"
 #import "RTInnerTube.h"
+#import "RTParse.h"
 #import "RTPlayback.h"
 #import "RTVideoCell.h"
 
@@ -77,6 +78,14 @@ static const NSUInteger RTLoadMoreDistance = 5;
     return page.items;
 }
 
+- (id)resultFromJSON:(NSDictionary *)json {
+    return RTParsePage(json);
+}
+
+- (RTPage *)pageFromResult:(id)result {
+    return result;
+}
+
 - (void)loadRequest:(NSURLRequest *)request {
     if (self.loading) return;
     self.loading = YES;
@@ -84,9 +93,12 @@ static const NSUInteger RTLoadMoreDistance = 5;
     [self updateFooter];
     NSUInteger generation = self.generation;
     __weak RTListViewController *weakSelf = self;
-    [[RTInnerTube shared] sendPage:request handler:^(RTPage *page, NSError *error) {
+    [[RTInnerTube shared] send:request transform:^id(NSDictionary *json) {
+        return [weakSelf resultFromJSON:json];
+    } handler:^(id result, NSError *error) {
         RTListViewController *controller = weakSelf;
         if (!controller || generation != controller.generation) return;
+        RTPage *page = result ? [controller pageFromResult:result] : nil;
         controller.loading = NO;
         [controller.refreshControl endRefreshing];
         if (error) {

@@ -19,4 +19,11 @@
 // Subclasses can change what a page adds. The default adds all its items.
 - (NSArray *)itemsToAdd:(RTPage *)page;
 
+// Reads an answer. It runs on a background queue. The default returns
+// RTParsePage(json).
+- (id)resultFromJSON:(NSDictionary *)json;
+// Gives the page of a result. It runs on the main queue. The default returns
+// the result.
+- (RTPage *)pageFromResult:(id)result;
+
 @end
