@@ -3,13 +3,6 @@
 Each release adds one big part. The reason for each choice is in
 [docs/decisions.md](docs/decisions.md).
 
-## 0.2.0: the video page
-
-- A page for each video: the title, the channel, the views, the date, the
-  description, and the related videos
-- Play from the page, and open the channel from the page
-- A setting for the highest video quality
-
 ## 0.3.0: subscriptions and history
 
 - Subscribe to a channel. The list stays on the phone.
@@ -25,7 +18,6 @@ Each release adds one big part. The reason for each choice is in
 ## 1.0.0
 
 - All of the above, checked on the iPhone 4S
-- The new logo
 - A Cydia repository, if the owner chooses one
 
 ## Known problems
@@ -33,5 +25,6 @@ Each release adds one big part. The reason for each choice is in
 - A live video does not play.
 - A seek starts play at the start of a segment, up to 7 seconds before the
   point that you chose.
+- The quality action sheet was not tested with a tap on the phone.
 - The sound of the app was not checked by ear. The tests check that the
   player plays the stream, not that the speaker gives sound.
