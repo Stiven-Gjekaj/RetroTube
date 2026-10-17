@@ -1,5 +1,6 @@
 #import "RTTest.h"
 #import "RTStreamSession.h"
+#import "RTAutoSession.h"
 #import "RTTS.h"
 #import "RTBoxBuilder.h"
 #import "RTInnerTube.h"
@@ -340,4 +341,120 @@ RT_TEST(test_live_session_remuxes_a_real_video) {
             break;
         }
     }
+}
+
+static RTFormat *Quality(FakeFile *file, NSString *name, NSInteger height, NSInteger bitrate) {
+    RTFormat *format = Format(file, name);
+    format.height = height;
+    format.width = height * 16 / 9;
+    format.bitrate = bitrate;
+    format.mimeType = @"video/mp4; codecs=\"avc1.4D401E\"";
+    return format;
+}
+
+// An Auto session over the fake files. Each quality reads the same video
+// file under its own URL name.
+static RTAutoSession *Auto(Reads *reads, NSArray *heights, FakeFile *odd) {
+    FakeFile *video = VideoFile(), *audio = AudioFile();
+    reads.list = [NSMutableArray array];
+    NSMutableArray *list = reads.list;
+    NSMutableArray *formats = [NSMutableArray array];
+    for (NSNumber *height in heights) {
+        [formats addObject:Quality(video, [NSString stringWithFormat:@"v%@", height], height.integerValue,
+                                   height.integerValue * 1000)];
+    }
+    if (odd) [formats addObject:Quality(odd, @"odd", 144, 100)];
+    RTFormat *sound = Format(audio, @"audio");
+    sound.bitrate = 130000;
+    return [[RTAutoSession alloc] initWithVideos:formats audio:sound
+        reader:^NSData *(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
+            @synchronized (list) {
+                [list addObject:[NSString stringWithFormat:@"%@ %llu-%llu", url.lastPathComponent, start, end]];
+            }
+            NSString *name = url.lastPathComponent;
+            NSData *data = [name isEqualToString:@"audio"] ? audio.data : [name isEqualToString:@"odd"] ? odd.data : video.data;
+            return [data subdataWithRange:NSMakeRange((NSUInteger)start, (NSUInteger)(end - start + 1))];
+        }];
+}
+
+RT_TEST(test_auto_master_playlist_starts_near_360p) {
+    RTAutoSession *session = Auto([Reads new], @[ @720, @480, @360, @240 ], nil);
+    RT_EXPECT([session prepare:NULL]);
+    NSString *text = [[NSString alloc] initWithData:session.masterPlaylist encoding:NSUTF8StringEncoding];
+    NSArray *lines = [text componentsSeparatedByString:@"\n"];
+    RT_EQUAL(lines[0], @"#EXTM3U");
+    RT_EQUAL(lines[2], @"#EXT-X-STREAM-INF:BANDWIDTH=490000,RESOLUTION=640x360,CODECS=\"avc1.4D401E,mp4a.40.2\"");
+    RT_EQUAL(lines[3], @"v0/index.m3u8");
+    RT_EXPECT([text rangeOfString:@"RESOLUTION=1280x720"].location != NSNotFound);
+    RT_EXPECT([text rangeOfString:@"v3/index.m3u8"].location != NSNotFound);
+    RT_EQUAL([[session.sessions valueForKey:@"videoFormat"] valueForKey:@"height"], (@[ @360, @480, @240, @720 ]));
+}
+
+RT_TEST(test_auto_passes_paths_to_each_quality) {
+    Reads *reads = [Reads new];
+    RTAutoSession *session = Auto(reads, @[ @720, @360 ], nil);
+    [session prepare:NULL];
+    NSString *type = nil;
+    NSInteger status = 0;
+    NSData *playlist = [session dataForPath:@"v1/index.m3u8" contentType:&type status:&status];
+    RT_EQUAL_INT(status, 200);
+    RT_EQUAL(playlist, [session.sessions[1] playlist]);
+    [reads.list removeAllObjects];
+    NSData *segment = [session dataForPath:@"v1/0.ts" contentType:&type status:&status];
+    RT_EQUAL_INT(status, 200);
+    RT_EQUAL(type, @"video/mp2t");
+    RT_EXPECT(segment.length > 0);
+    RT_EXPECT([[reads.list componentsJoinedByString:@" "] rangeOfString:@"v720 "].location != NSNotFound);
+    for (NSString *path in @[ @"v2/index.m3u8", @"x0/index.m3u8", @"v0", @"v01/0.ts", @"v0/9.ts", @"other" ]) {
+        status = 0;
+        RT_EXPECT([session dataForPath:path contentType:&type status:&status] == nil);
+        RT_EQUAL_INT(status, 404);
+    }
+}
+
+RT_TEST(test_auto_qualities_share_sound_and_load_nothing_early) {
+    Reads *reads = [Reads new];
+    RTAutoSession *session = Auto(reads, @[ @720, @360 ], nil);
+    [session prepare:NULL];
+    [reads.list removeAllObjects];
+    NSString *type = nil;
+    NSInteger status = 0;
+    // The player changes from 360p to 720p after segment 0.
+    [session dataForPath:@"v0/0.ts" contentType:&type status:&status];
+    [session dataForPath:@"v1/1.ts" contentType:&type status:&status];
+    [NSThread sleepForTimeInterval:0.3];
+    NSUInteger video = 0, sound = 0;
+    for (NSString *read in reads.list) {
+        if ([read hasPrefix:@"audio "]) sound++;
+        else video++;
+    }
+    RT_EQUAL_INT(video, 2);  // One for each segment, and no prefetch
+    RT_EQUAL_INT(sound, 2);  // Sound blocks 0 and 1, each one time
+}
+
+RT_TEST(test_auto_drops_quality_with_other_segments) {
+    // A file with two segments of 3 s, not three of 2 s.
+    NSArray *fragments = @[ FragmentWithSamples(0, @[ Slice(1) ], 3000, 0), FragmentWithSamples(3000, @[ Slice(2) ], 3000, 0) ];
+    FakeFile *odd = MakeFile(Init(Hdlr("vide"), 1000, VideoEntry(), @[]), 1000, fragments, @[ @3000, @3000 ]);
+    RTAutoSession *session = Auto([Reads new], @[ @360, @240 ], odd);
+    RT_EXPECT([session prepare:NULL]);
+    RT_EQUAL([[session.sessions valueForKey:@"videoFormat"] valueForKey:@"height"], (@[ @360, @240 ]));
+}
+
+RT_TEST(test_auto_formats_pick_one_stream_for_each_height) {
+    NSMutableArray *list = [NSMutableArray array];
+    for (NSArray *spec in @[ @[ @1080, @30, @3000 ], @[ @720, @60, @2500 ], @[ @720, @30, @1200 ], @[ @720, @30, @1000 ],
+                             @[ @480, @30, @600 ], @[ @240, @30, @200 ], @[ @144, @30, @100 ] ]) {
+        RTFormat *format = [RTFormat new];
+        format.height = [spec[0] integerValue];
+        format.fps = [spec[1] integerValue];
+        format.bitrate = [spec[2] integerValue];
+        [list addObject:format];
+    }
+    RTPlayerInfo *info = [RTPlayerInfo new];
+    info.videoFormats = list;
+    NSArray *formats = RTAutoFormats(info, 720);
+    RT_EQUAL([formats valueForKey:@"height"], (@[ @720, @480, @240 ]));
+    RT_EQUAL_INT([formats[0] bitrate], 1200);
+    RT_EQUAL([RTAutoFormats(info, 480) valueForKey:@"height"], (@[ @480, @240 ]));
 }
