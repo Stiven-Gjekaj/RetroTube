@@ -17,6 +17,9 @@ Faster playback and less data.
 - The video and the sound of a segment download at the same time.
 - Two segments load before the player asks for them. In the same test, the
   wait for segments 1 to 5 went from 0.57 to 3.66 seconds to none.
+- Only one segment downloads at a time, and the segment that the player
+  waits for goes first. On a slow network, more downloads at the same time
+  shared the bandwidth and made the player wait longer.
 - The thumbnails stay on disk between launches, up to 30 MB.
 - The Feed tab shows the last feed at once at launch, while the new feed
   loads.
