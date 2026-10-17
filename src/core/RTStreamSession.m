@@ -43,6 +43,8 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
 @property (nonatomic, strong) RTMP4Index *videoIndex;
 @property (nonatomic, strong) RTMP4Index *audioIndex;
 @property (nonatomic, strong) NSCache *segments;
+@property (nonatomic, strong) NSCache *audioBlocks;
+@property (nonatomic, strong) NSMutableSet *audioLoading;
 @property (nonatomic, strong) NSMutableSet *loading;
 @property (nonatomic, strong) NSCondition *condition;
 @property (nonatomic, strong) dispatch_queue_t prefetchQueue;
@@ -64,6 +66,12 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
         _segments = [NSCache new];
         _segments.countLimit = 3;
         _loading = [NSMutableSet set];
+        // A sound block of YouTube is about 10 seconds, and a segment is 3 to
+        // 7 seconds. Keep the blocks, so that the next segment does not read
+        // the same block again.
+        _audioBlocks = [NSCache new];
+        _audioBlocks.countLimit = 6;
+        _audioLoading = [NSMutableSet set];
         _condition = [NSCondition new];
         _prefetchQueue = dispatch_queue_create("RTStreamSession.prefetch", DISPATCH_QUEUE_SERIAL);
     }
@@ -130,22 +138,45 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
     return [text dataUsingEncoding:NSUTF8StringEncoding];
 }
 
-// Reads the audio entries that overlap [start, end) seconds, as one range.
+// Gives one sound block from the cache, or reads it. Two requests for the
+// same block read it one time: the second waits for the first.
+- (NSData *)audioBlock:(NSUInteger)index error:(NSError **)error {
+    NSNumber *key = @(index);
+    [self.condition lock];
+    NSData *data = [self.audioBlocks objectForKey:key];
+    while (!data && [self.audioLoading containsObject:key]) {
+        [self.condition wait];
+        data = [self.audioBlocks objectForKey:key];
+    }
+    if (!data) [self.audioLoading addObject:key];
+    [self.condition unlock];
+    if (data) return data;
+
+    RTMP4IndexEntry entry = [self.audioIndex entryAtIndex:index];
+    data = self.reader(self.audioFormat.url, entry.offset, entry.offset + entry.size - 1, error);
+    [self.condition lock];
+    if (data) [self.audioBlocks setObject:data forKey:key];
+    [self.audioLoading removeObject:key];
+    [self.condition broadcast];
+    [self.condition unlock];
+    return data;
+}
+
+// Gives the sound blocks that overlap [start, end) seconds, joined.
 - (NSData *)audioFrom:(double)start to:(double)end error:(NSError **)error {
     RTMP4Index *index = self.audioIndex;
-    NSUInteger first = NSNotFound, last = 0;
+    NSMutableData *joined = [NSMutableData data];
     for (NSUInteger i = 0; i < index.count; i++) {
         RTMP4IndexEntry entry = [index entryAtIndex:i];
         double entryStart = (double)entry.startTime / index.timescale;
         double entryEnd = (double)(entry.startTime + entry.duration) / index.timescale;
         if (entryEnd > start && entryStart < end) {
-            if (first == NSNotFound) first = i;
-            last = i;
+            NSData *block = [self audioBlock:i error:error];
+            if (!block) return nil;
+            [joined appendData:block];
         }
     }
-    if (first == NSNotFound) return [NSData data];
-    RTMP4IndexEntry a = [index entryAtIndex:first], b = [index entryAtIndex:last];
-    return self.reader(self.audioFormat.url, a.offset, b.offset + b.size - 1, error);
+    return joined;
 }
 
 - (NSData *)buildSegment:(NSUInteger)index error:(NSError **)error {

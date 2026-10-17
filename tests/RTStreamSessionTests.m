@@ -161,6 +161,27 @@ RT_TEST(test_session_segment_across_audio_entries) {
     RT_EQUAL_INT(CountPES(last, RTTSPidAudio), 1);
 }
 
+static NSUInteger CountReads(Reads *reads, NSString *prefix) {
+    NSUInteger count = 0;
+    @synchronized (reads.list) {
+        for (NSString *read in reads.list) {
+            if ([read hasPrefix:prefix]) count++;
+        }
+    }
+    return count;
+}
+
+RT_TEST(test_session_reads_each_sound_block_one_time) {
+    Reads *reads = [Reads new];
+    RTStreamSession *session = Session(reads);
+    [session prepare:NULL];
+    // Segments 0, 1, and 2 need the sound blocks 0, 0 and 1, and 1.
+    for (NSUInteger i = 0; i < 3; i++) RT_EXPECT([session segmentAtIndex:i error:NULL] != nil);
+    // The prefetch can still run. Wait for it.
+    [NSThread sleepForTimeInterval:0.3];
+    RT_EQUAL_INT(CountReads(reads, @"audio "), 1 + 2);  // the head, then each block one time
+}
+
 RT_TEST(test_session_caches_segments) {
     Reads *reads = [Reads new];
     RTStreamSession *session = Session(reads);
