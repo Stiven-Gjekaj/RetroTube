@@ -2,6 +2,11 @@
 #import "RTMP4.h"
 #import "RTRemux.h"
 
+// The number of segments that load before the player asks for them. The
+// network of the phone changes speed a lot, and two segments hide a slow
+// moment. Each 720p segment is about 0.5 MB.
+static const NSUInteger RTPrefetchDepth = 2;
+
 static NSError *RTSessionError(NSString *text) {
     return [NSError errorWithDomain:@"RTStreamSession" code:1 userInfo:@{ NSLocalizedDescriptionKey: text }];
 }
@@ -64,7 +69,7 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
         _audioFormat = audio;
         _reader = [reader copy];
         _segments = [NSCache new];
-        _segments.countLimit = 3;
+        _segments.countLimit = RTPrefetchDepth + 3;  // The segments ahead, this one, and two behind
         _loading = [NSMutableSet set];
         // A sound block of YouTube is about 10 seconds, and a segment is 3 to
         // 7 seconds. Keep the blocks, so that the next segment does not read
@@ -231,7 +236,9 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
         [self.condition broadcast];
         [self.condition unlock];
     }
-    if (data) [self prefetch:index + 1];
+    if (data) {
+        for (NSUInteger next = index + 1; next <= index + RTPrefetchDepth; next++) [self prefetch:next];
+    }
     return data;
 }
 

@@ -183,6 +183,21 @@ RT_TEST(test_session_reads_each_sound_block_one_time) {
     RT_EQUAL_INT(CountReads(reads, @"audio "), 1 + 2);  // the head, then each block one time
 }
 
+RT_TEST(test_session_loads_two_segments_ahead) {
+    Reads *reads = [Reads new];
+    RTStreamSession *session = Session(reads);
+    [session prepare:NULL];
+    [session segmentAtIndex:0 error:NULL];
+    [NSThread sleepForTimeInterval:0.3];  // The prefetch runs.
+    NSUInteger count = reads.list.count;
+    RT_EXPECT([session segmentAtIndex:1 error:NULL] != nil);
+    RT_EXPECT([session segmentAtIndex:2 error:NULL] != nil);
+    // Segments 1 and 2 were ready. Only the prefetch of segment 3 and 4 can
+    // read more, and the test file has no segment 3.
+    RT_EQUAL_INT(CountReads(reads, @"video "), 1 + 3);  // the head, then segments 0, 1, and 2
+    RT_EXPECT(reads.list.count == count);
+}
+
 RT_TEST(test_session_caches_segments) {
     Reads *reads = [Reads new];
     RTStreamSession *session = Session(reads);
