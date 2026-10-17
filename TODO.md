@@ -7,11 +7,6 @@ the owner chooses them. The reason for each choice is in
 
 ## Ideas for the owner to choose
 
-- An Auto quality that changes with the speed of the network. The local
-  server can give an HLS playlist with 360p, 480p, and 720p, and the player
-  of iOS 6 picks one by the speed.
-- A Cydia repository, so that Cydia shows the updates
-
 ## Known problems
 
 - A live video does not play.
