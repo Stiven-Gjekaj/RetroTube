@@ -27,7 +27,7 @@ _Native UIKit, no server, no account_
 ---
 
 > [!NOTE]
-> **Version 1.0.1 is out.** It shows popular videos, searches YouTube, plays
+> **Version 1.1.0 is out.** It shows popular videos, searches YouTube, plays
 > videos up to 1080p, and keeps your subscriptions and your history on the
 > phone, with a feed of the new videos.
 > [TODO.md](TODO.md) lists the known problems.
