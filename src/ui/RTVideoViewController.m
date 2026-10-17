@@ -62,7 +62,7 @@ static const CGFloat RTPadding = 10;
 @property (nonatomic, strong) UILabel *subscribersLabel;
 @property (nonatomic, strong) UILabel *descriptionLabel;
 @property (nonatomic, strong) UIButton *moreButton;
-@property (nonatomic, copy) NSArray *qualityChoices;  // Heights, as NSNumber
+@property (nonatomic, copy) NSArray *qualityChoices;  // Heights, as NSNumber. 0 is Auto.
 @end
 
 @implementation RTVideoViewController
@@ -281,11 +281,12 @@ static UIView *RTLine(CGFloat y) {
 
 #pragma mark - Quality
 
-// The button shows the height that plays: the highest one under the setting.
+// The button shows "Auto", or the height that plays: the highest one under
+// the setting.
 - (void)updateQualityButton {
     NSInteger height = [self.playerInfo videoFormatForMaxHeight:[RTPlayback maxHeight]].height;
     if (!height) height = [RTPlayback maxHeight];
-    NSString *title = [NSString stringWithFormat:@"%ldp", (long)height];
+    NSString *title = [RTPlayback isAuto] ? @"Auto" : [NSString stringWithFormat:@"%ldp", (long)height];
     self.navigationItem.rightBarButtonItem =
         [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStyleBordered target:self
                                         action:@selector(chooseQuality)];
@@ -297,10 +298,18 @@ static UIView *RTLine(CGFloat y) {
         if (format.fps <= 30 && format.height >= 240) [heights addObject:@(format.height)];
     }
     if (!heights.count) [heights addObjectsFromArray:@[ @1080, @720, @480, @360 ]];
-    self.qualityChoices = heights.array;
-    UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:@"Highest video quality" delegate:self
+    // 0 is Auto. It is the first choice.
+    self.qualityChoices = [@[ @0 ] arrayByAddingObjectsFromArray:heights.array];
+    UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:@"Video quality" delegate:self
                                               cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-    for (NSNumber *height in self.qualityChoices) [sheet addButtonWithTitle:[NSString stringWithFormat:@"%@p", height]];
+    for (NSNumber *height in self.qualityChoices) {
+        NSString *name = height.integerValue ? [NSString stringWithFormat:@"%@p", height] : @"Auto (by network speed)";
+        if ((height.integerValue == 0) == [RTPlayback isAuto] &&
+            ([RTPlayback isAuto] || height.integerValue == [RTPlayback maxHeight])) {
+            name = [name stringByAppendingString:@" \u2713"];
+        }
+        [sheet addButtonWithTitle:name];
+    }
     sheet.cancelButtonIndex = [sheet addButtonWithTitle:@"Cancel"];
     [sheet showInView:self.view.window];
 }
