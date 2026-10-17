@@ -27,7 +27,7 @@ _Native UIKit, no server, no account_
 ---
 
 > [!NOTE]
-> **Version 1.1.0 is out.** It shows popular videos, searches YouTube, plays
+> **Version 1.2.0 is out.** It shows popular videos, searches YouTube, plays
 > videos up to 1080p, and keeps your subscriptions and your history on the
 > phone, with a feed of the new videos.
 > [TODO.md](TODO.md) lists the known problems.
@@ -79,7 +79,8 @@ with seek and the standard controls.
   channel, the description, and the related videos
 - The videos of a channel, newest first
 - Play videos in H.264 with sound, seek, and full screen
-- Choose the highest quality, from 240p to 1080p. The default is 720p.
+- Auto quality: the player changes between 240p and 720p with the speed of
+  the network. Or choose one quality, from 240p to 1080p.
 - Paste a YouTube link into the search bar to open its video or channel
 - Open `retrotube://` links from other apps:
   `retrotube://search?q=TEXT`, `retrotube://watch?v=ID`,
