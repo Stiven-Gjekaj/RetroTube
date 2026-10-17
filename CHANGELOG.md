@@ -7,6 +7,18 @@ number, and a change that breaks the stored subscriptions or history raises
 the major number.
 Each release on GitHub has the `.deb` package as an asset.
 
+## 1.2.0 (2026-10-17)
+
+Auto quality.
+
+- The quality button has a new first choice, Auto. With Auto, the player of
+  iOS 6 changes between 240p, 360p, 480p, and 720p with the speed of the
+  network. It starts at 360p.
+- Auto is the default. A quality that you chose before stays.
+- The quality list marks the current choice.
+- On a network of about 40 KB/s, Auto started at 360p, played 49 seconds,
+  then changed to 240p and played on after one stop of about 10 seconds.
+
 ## 1.1.0 (2026-10-17)
 
 Faster playback and less data.
