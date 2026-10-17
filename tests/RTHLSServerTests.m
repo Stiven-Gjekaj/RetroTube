@@ -2,6 +2,7 @@
 #import "RTHLSServer.h"
 
 @interface StaticSource : NSObject <RTHLSSource>
+- (NSData *)playlist;
 @end
 
 @implementation StaticSource
@@ -10,10 +11,25 @@
     return [@"#EXTM3U\n" dataUsingEncoding:NSUTF8StringEncoding];
 }
 
-- (NSData *)segmentAtIndex:(NSUInteger)index error:(NSError **)error {
-    if (index > 1) return nil;
+// "index.m3u8", "0.ts", "1.ts", "deep/file.ts", and "broken.ts" (502).
+- (NSData *)dataForPath:(NSString *)path contentType:(NSString **)contentType status:(NSInteger *)status {
+    *status = 200;
+    if ([path isEqualToString:@"index.m3u8"]) {
+        *contentType = @"application/vnd.apple.mpegurl";
+        return [self playlist];
+    }
+    if ([path isEqualToString:@"broken.ts"]) {
+        *status = 502;
+        return nil;
+    }
+    NSDictionary *fills = @{ @"0.ts": @1, @"1.ts": @2, @"deep/file.ts": @3 };
+    if (!fills[path]) {
+        *status = 404;
+        return nil;
+    }
+    *contentType = @"video/mp2t";
     NSMutableData *data = [NSMutableData dataWithLength:300000];
-    memset(data.mutableBytes, (int)index + 1, data.length);
+    memset(data.mutableBytes, [fills[path] intValue], data.length);
     return data;
 }
 
@@ -54,20 +70,29 @@ RT_TEST(test_server_serves_playlist_and_segments) {
     [server stop];
 }
 
-RT_TEST(test_server_refuses_unknown_paths) {
+RT_TEST(test_server_gives_status_of_source) {
     RTHLSServer *server = [RTHLSServer new];
     [server start:NULL];
     NSURL *playlist = [server addSource:[StaticSource new]];
     NSInteger status = 0;
-    Get([NSURL URLWithString:@"9.ts" relativeToURL:playlist], &status, NULL);
-    RT_EQUAL_INT(status, 502);
-    Get([NSURL URLWithString:@"x1.ts" relativeToURL:playlist], &status, NULL);
+    Get([NSURL URLWithString:@"broken.ts" relativeToURL:playlist], &status, NULL);
     RT_EQUAL_INT(status, 502);
     Get([NSURL URLWithString:@"other.txt" relativeToURL:playlist], &status, NULL);
     RT_EQUAL_INT(status, 404);
     NSString *missing = [NSString stringWithFormat:@"http://127.0.0.1:%u/nothing/index.m3u8", server.port];
     Get([NSURL URLWithString:missing], &status, NULL);
     RT_EQUAL_INT(status, 404);
+    [server stop];
+}
+
+RT_TEST(test_server_passes_deep_paths) {
+    RTHLSServer *server = [RTHLSServer new];
+    [server start:NULL];
+    NSURL *playlist = [server addSource:[StaticSource new]];
+    NSInteger status = 0;
+    NSData *data = Get([NSURL URLWithString:@"deep/file.ts" relativeToURL:playlist], &status, NULL);
+    RT_EQUAL_INT(status, 200);
+    RT_EQUAL_INT(((const uint8_t *)data.bytes)[0], 3);
     [server stop];
 }
 

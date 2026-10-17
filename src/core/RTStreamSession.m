@@ -127,6 +127,26 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
     return self.videoIndex.count;
 }
 
+- (NSData *)dataForPath:(NSString *)path contentType:(NSString **)contentType status:(NSInteger *)status {
+    if ([path isEqualToString:@"index.m3u8"]) {
+        *contentType = @"application/vnd.apple.mpegurl";
+        *status = 200;
+        return [self playlist];
+    }
+    // A segment is "<number>.ts", with no sign and no leading text.
+    NSString *number = [path hasSuffix:@".ts"] ? [path stringByDeletingPathExtension] : nil;
+    NSInteger index = number.integerValue;
+    if (!number.length || index < 0 || ![[NSString stringWithFormat:@"%ld", (long)index] isEqualToString:number] ||
+        (NSUInteger)index >= self.segmentCount) {
+        *status = 404;
+        return nil;
+    }
+    NSData *segment = [self segmentAtIndex:(NSUInteger)index error:NULL];
+    *contentType = @"video/mp2t";
+    *status = segment ? 200 : 502;
+    return segment;
+}
+
 - (double)startOfSegment:(NSUInteger)index {
     return (double)[self.videoIndex entryAtIndex:index].startTime / self.videoIndex.timescale;
 }

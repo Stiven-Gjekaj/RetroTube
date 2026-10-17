@@ -209,6 +209,26 @@ RT_TEST(test_session_caches_segments) {
     RT_EQUAL_INT(reads.list.count, count);
 }
 
+RT_TEST(test_session_gives_files_by_path) {
+    RTStreamSession *session = Session([Reads new]);
+    [session prepare:NULL];
+    NSString *type = nil;
+    NSInteger status = 0;
+    NSData *playlist = [session dataForPath:@"index.m3u8" contentType:&type status:&status];
+    RT_EQUAL_INT(status, 200);
+    RT_EQUAL(type, @"application/vnd.apple.mpegurl");
+    RT_EQUAL(playlist, session.playlist);
+    NSData *segment = [session dataForPath:@"2.ts" contentType:&type status:&status];
+    RT_EQUAL_INT(status, 200);
+    RT_EQUAL(type, @"video/mp2t");
+    RT_EXPECT(segment.length > 0);
+    for (NSString *path in @[ @"3.ts", @"-1.ts", @"x1.ts", @"01.ts", @"2", @"other.txt", @"" ]) {
+        status = 0;
+        RT_EXPECT([session dataForPath:path contentType:&type status:&status] == nil);
+        RT_EQUAL_INT(status, 404);
+    }
+}
+
 RT_TEST(test_session_refuses_segment_past_the_end) {
     RTStreamSession *session = Session([Reads new]);
     [session prepare:NULL];

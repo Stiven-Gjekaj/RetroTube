@@ -7,9 +7,11 @@
 
 // The source of an HLS stream for RTHLSServer.
 @protocol RTHLSSource <NSObject>
-- (NSData *)playlist;
-// Returns the TS data of the segment, or nil. It can block.
-- (NSData *)segmentAtIndex:(NSUInteger)index error:(NSError **)error;
+// Gives a file of the stream. path is the part of the URL after the
+// session, for example "index.m3u8" or "v1/4.ts". status gets 200, 404 for
+// a path that does not exist, or 502 for a file that did not load. It can
+// block.
+- (NSData *)dataForPath:(NSString *)path contentType:(NSString **)contentType status:(NSInteger *)status;
 @end
 
 // Reads a range of bytes of a URL. It blocks. The range is [start, end].
@@ -33,6 +35,12 @@ typedef NSData *(^RTRangeReader)(NSURL *url, uint64_t start, uint64_t end, NSErr
 
 // The duration of the segment in seconds.
 - (double)durationOfSegment:(NSUInteger)index;
+
+// The playlist of the segments, "index.m3u8".
+- (NSData *)playlist;
+
+// Returns the TS data of the segment, or nil. It can block.
+- (NSData *)segmentAtIndex:(NSUInteger)index error:(NSError **)error;
 
 @end
 

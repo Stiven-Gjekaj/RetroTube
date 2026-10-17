@@ -139,30 +139,22 @@ static void RTRespond(int fd, int status, NSString *reason, NSString *type, NSDa
             close(fd);
             return;
         }
-        NSArray *parts = [path componentsSeparatedByString:@"/"];  // "", session, file
+        // The path is "/<session>/<file>". The file can have more parts.
+        NSArray *parts = [path componentsSeparatedByString:@"/"];
         id<RTHLSSource> source = nil;
-        if (parts.count == 3) {
+        NSString *file = nil;
+        if (parts.count >= 3 && [parts[0] length] == 0) {
             @synchronized (self.sources) {
                 source = self.sources[parts[1]];
             }
+            file = [[parts subarrayWithRange:NSMakeRange(2, parts.count - 2)] componentsJoinedByString:@"/"];
         }
-        NSString *file = parts.count == 3 ? parts[2] : nil;
-        if (!source) {
-            RTRespond(fd, 404, @"Not Found", @"text/plain", nil, head);
-        } else if ([file isEqualToString:@"index.m3u8"]) {
-            RTRespond(fd, 200, @"OK", @"application/vnd.apple.mpegurl", [source playlist], head);
-        } else if ([file hasSuffix:@".ts"]) {
-            NSString *number = [file stringByDeletingPathExtension];
-            NSInteger index = number.integerValue;
-            NSData *segment = nil;
-            if ([[NSString stringWithFormat:@"%ld", (long)index] isEqualToString:number] && index >= 0) {
-                segment = [source segmentAtIndex:(NSUInteger)index error:NULL];
-            }
-            if (segment) RTRespond(fd, 200, @"OK", @"video/mp2t", segment, head);
-            else RTRespond(fd, 502, @"Bad Gateway", @"text/plain", nil, head);
-        } else {
-            RTRespond(fd, 404, @"Not Found", @"text/plain", nil, head);
-        }
+        NSString *type = @"text/plain";
+        NSInteger status = 404;
+        NSData *body = source ? [source dataForPath:file contentType:&type status:&status] : nil;
+        if (status == 200 && body) RTRespond(fd, 200, @"OK", type, body, head);
+        else if (status == 502) RTRespond(fd, 502, @"Bad Gateway", @"text/plain", nil, head);
+        else RTRespond(fd, 404, @"Not Found", @"text/plain", nil, head);
         close(fd);
     }
 }

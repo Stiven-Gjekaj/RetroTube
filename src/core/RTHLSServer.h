@@ -1,6 +1,6 @@
 // A small HTTP server on 127.0.0.1 for the HLS player of the system.
 // iOS 6 does not play HLS from a file URL, so the app serves it here.
-// A path is /<session>/index.m3u8 or /<session>/<n>.ts.
+// A path is /<session>/<file>. The source of the session gives the file.
 
 #import <Foundation/Foundation.h>
 #import "RTStreamSession.h"
