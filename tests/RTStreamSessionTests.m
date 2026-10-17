@@ -141,10 +141,11 @@ RT_TEST(test_session_segment_reads_only_the_audio_it_needs) {
     RT_EXPECT(error == nil);
     RT_EQUAL_INT(CountPES(ts, RTTSPidVideo), 2);
     RT_EQUAL_INT(CountPES(ts, RTTSPidAudio), 1);  // 4 frames in one PES
-    NSArray *firstTwo = [reads.list subarrayWithRange:NSMakeRange(0, 2)];
-    RT_EXPECT([firstTwo[0] hasPrefix:@"video "]);
-    RT_EXPECT([firstTwo[1] hasPrefix:@"audio "]);
-    NSString *audioRange = firstTwo[1];
+    // The video and the sound are read at the same time, in any order.
+    NSArray *firstTwo = [[reads.list subarrayWithRange:NSMakeRange(0, 2)] sortedArrayUsingSelector:@selector(compare:)];
+    RT_EXPECT([firstTwo[0] hasPrefix:@"audio "]);
+    RT_EXPECT([firstTwo[1] hasPrefix:@"video "]);
+    NSString *audioRange = firstTwo[0];
     NSString *expectedStart = [NSString stringWithFormat:@"audio %lu-",
                                (unsigned long)NSMaxRange(AudioFile().indexRange)];
     RT_EXPECT([audioRange hasPrefix:expectedStart]);
@@ -199,6 +200,49 @@ RT_TEST(test_session_refuses_segment_past_the_end) {
     NSError *error = nil;
     RT_EXPECT([session segmentAtIndex:3 error:&error] == nil);
     RT_EXPECT(error != nil);
+}
+
+RT_TEST(test_session_reads_video_and_sound_at_the_same_time) {
+    FakeFile *video = VideoFile(), *audio = AudioFile();
+    __block int active = 0, most = 0;
+    NSObject *lock = [NSObject new];
+    RTStreamSession *session = [[RTStreamSession alloc] initWithVideo:Format(video, @"video") audio:Format(audio, @"audio")
+        reader:^NSData *(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
+            @synchronized (lock) {
+                active++;
+                most = MAX(most, active);
+            }
+            [NSThread sleepForTimeInterval:0.2];  // A slow network
+            @synchronized (lock) {
+                active--;
+            }
+            NSData *data = [url.lastPathComponent isEqualToString:@"video"] ? video.data : audio.data;
+            return [data subdataWithRange:NSMakeRange((NSUInteger)start, (NSUInteger)(end - start + 1))];
+        }];
+    [session prepare:NULL];
+    most = 0;
+    NSDate *began = [NSDate date];
+    RT_EXPECT([session segmentAtIndex:0 error:NULL] != nil);
+    RT_EQUAL_INT(most, 2);
+    RT_EXPECT([[NSDate date] timeIntervalSinceDate:began] < 0.35);
+}
+
+RT_TEST(test_session_segment_fails_when_sound_fails) {
+    FakeFile *video = VideoFile(), *audio = AudioFile();
+    RTStreamSession *session = [[RTStreamSession alloc] initWithVideo:Format(video, @"video") audio:Format(audio, @"audio")
+        reader:^NSData *(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
+            BOOL isAudio = [url.lastPathComponent isEqualToString:@"audio"];
+            if (isAudio && start > 0) {
+                *error = [NSError errorWithDomain:@"test" code:403 userInfo:nil];
+                return nil;
+            }
+            NSData *data = isAudio ? audio.data : video.data;
+            return [data subdataWithRange:NSMakeRange((NSUInteger)start, (NSUInteger)(end - start + 1))];
+        }];
+    [session prepare:NULL];
+    NSError *error = nil;
+    RT_EXPECT([session segmentAtIndex:0 error:&error] == nil);
+    RT_EQUAL_INT(error.code, 403);
 }
 
 RT_TEST(test_session_prepare_fails_with_reader_error) {

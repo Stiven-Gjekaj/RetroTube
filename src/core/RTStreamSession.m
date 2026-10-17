@@ -180,16 +180,28 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
 }
 
 - (NSData *)buildSegment:(NSUInteger)index error:(NSError **)error {
-    RTMP4IndexEntry entry = [self.videoIndex entryAtIndex:index];
-    NSData *video = self.reader(self.videoFormat.url, entry.offset, entry.offset + entry.size - 1, error);
-    if (!video) return nil;
     // The first segment takes the audio from 0. The last takes the rest.
     double start = index == 0 ? 0 : [self startOfSegment:index];
     double end = index + 1 == self.segmentCount ? 1e9 : [self startOfSegment:index + 1];
-    NSData *audio = nil;
+
+    // Read the sound on another thread while this thread reads the video.
+    __block NSData *audio = nil;
+    __block NSError *audioError = nil;
+    dispatch_group_t group = dispatch_group_create();
     if (self.audioTrack) {
-        audio = [self audioFrom:start to:end error:error];
-        if (!audio) return nil;
+        dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+            NSError *readError = nil;
+            audio = [self audioFrom:start to:end error:&readError];
+            audioError = readError;
+        });
+    }
+    RTMP4IndexEntry entry = [self.videoIndex entryAtIndex:index];
+    NSData *video = self.reader(self.videoFormat.url, entry.offset, entry.offset + entry.size - 1, error);
+    dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    if (!video) return nil;
+    if (self.audioTrack && !audio) {
+        if (error) *error = audioError;
+        return nil;
     }
     return RTRemuxSegment(self.videoTrack, video, self.audioTrack, audio, start, end, error);
 }
