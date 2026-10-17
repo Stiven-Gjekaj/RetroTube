@@ -7,6 +7,21 @@ number, and a change that breaks the stored subscriptions or history raises
 the major number.
 Each release on GitHub has the `.deb` package as an asset.
 
+## 1.1.0 (2026-10-17)
+
+Faster playback and less data.
+
+- Each sound block downloads one time. Before, the app downloaded most of
+  the sound two or three times. In a test of 6 segments at 720p, the sound
+  went from 1,456 KB to 648 KB.
+- The video and the sound of a segment download at the same time.
+- Two segments load before the player asks for them. In the same test, the
+  wait for segments 1 to 5 went from 0.57 to 3.66 seconds to none.
+- The thumbnails stay on disk between launches, up to 30 MB.
+- The Feed tab shows the last feed at once at launch, while the new feed
+  loads.
+- The search gets the original titles only for the rows that show.
+
 ## 1.0.1 (2026-10-16)
 
 - Search results show the original title of each video. YouTube search
