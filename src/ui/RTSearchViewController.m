@@ -7,6 +7,8 @@
 
 @interface RTSearchViewController ()
 @property (nonatomic, strong) UISearchBar *searchBar;
+@property (nonatomic, strong) NSMutableSet *checkedTitles;     // The video IDs that have their original title
+@property (nonatomic, strong) NSMutableArray *pendingTitles;   // The videos of the next batch
 @end
 
 @implementation RTSearchViewController
@@ -39,6 +41,9 @@
     self.searchBar.text = query;
     [self.searchBar resignFirstResponder];
     self.firstRequest = [[RTInnerTube shared] searchRequest:query params:nil];
+    // A new search has new items. Check their titles again.
+    [self.checkedTitles removeAllObjects];
+    [self.pendingTitles removeAllObjects];
     [self reload];
 }
 
@@ -61,13 +66,28 @@
     }
 }
 
-// YouTube search can give a translated title. Show the original one.
-// See RTTitles.h.
-- (void)didAddItems:(NSArray *)items {
+// YouTube search can give a translated title. Show the original one, see
+// RTTitles.h. Ask only for the rows that show, one time for each video.
+// Collect the rows for a short time, so that one scroll gives one batch.
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell
+    forRowAtIndexPath:(NSIndexPath *)indexPath {
+    [super tableView:tableView willDisplayCell:cell forRowAtIndexPath:indexPath];
+    id item = self.items[(NSUInteger)indexPath.row];
+    if (![item isKindOfClass:[RTVideo class]]) return;
+    RTVideo *video = item;
+    if (!self.checkedTitles) self.checkedTitles = [NSMutableSet set];
+    if (!self.pendingTitles) self.pendingTitles = [NSMutableArray array];
+    if ([self.checkedTitles containsObject:video.videoId]) return;
+    [self.checkedTitles addObject:video.videoId];
+    [self.pendingTitles addObject:video];
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(loadPendingTitles) object:nil];
+    [self performSelector:@selector(loadPendingTitles) withObject:nil afterDelay:0.3];
+}
+
+- (void)loadPendingTitles {
     NSMutableDictionary *videos = [NSMutableDictionary dictionary];
-    for (id item in items) {
-        if ([item isKindOfClass:[RTVideo class]]) videos[[item videoId]] = item;
-    }
+    for (RTVideo *video in self.pendingTitles) videos[video.videoId] = video;
+    [self.pendingTitles removeAllObjects];
     __weak RTSearchViewController *weakSelf = self;
     RTLoadOriginalTitles(videos.allKeys, ^(NSDictionary *titles) {
         NSMutableArray *changed = [NSMutableArray array];

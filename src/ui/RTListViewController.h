@@ -19,9 +19,6 @@
 // Subclasses can change what a page adds. The default adds all its items.
 - (NSArray *)itemsToAdd:(RTPage *)page;
 
-// Runs after the new items of a page show. The default does nothing.
-- (void)didAddItems:(NSArray *)items;
-
 // Shows the item again, for example after a change of its title.
 - (void)reloadItems:(NSArray *)items;
 

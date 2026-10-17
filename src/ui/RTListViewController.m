@@ -78,9 +78,6 @@ static const NSUInteger RTLoadMoreDistance = 5;
     return page.items;
 }
 
-- (void)didAddItems:(NSArray *)items {
-}
-
 - (void)reloadItems:(NSArray *)items {
     NSMutableArray *paths = [NSMutableArray array];
     for (id item in items) {
@@ -136,7 +133,6 @@ static const NSUInteger RTLoadMoreDistance = 5;
                 [controller.tableView insertRowsAtIndexPaths:paths withRowAnimation:UITableViewRowAnimationNone];
             }
             if (!controller.list.count) controller.messageLabel.text = controller.emptyText;
-            if (added.count) [controller didAddItems:added];
         }
         [controller updateFooter];
     }];
