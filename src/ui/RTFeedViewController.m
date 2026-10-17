@@ -1,4 +1,5 @@
 #import "RTFeedViewController.h"
+#import "RTFeedCache.h"
 #import "RTFeedLoader.h"
 #import "RTStore.h"
 
@@ -21,6 +22,10 @@
     [super viewDidLoad];
     self.refreshControl = [UIRefreshControl new];
     [self.refreshControl addTarget:self action:@selector(reload) forControlEvents:UIControlEventValueChanged];
+    // Show the last feed at once. The new feed replaces it when it loads.
+    NSArray *ids = [[RTStore shared].subscriptions valueForKey:@"channelId"];
+    NSArray *saved = ids.count ? RTLoadFeed(RTFeedCachePath(), ids, [NSDate date]) : nil;
+    if (saved.count) self.items = saved;
     [self reload];
 }
 
@@ -47,6 +52,7 @@
         weakSelf.loading = NO;
         [weakSelf.refreshControl endRefreshing];
         if (videos.count || !failures) weakSelf.items = videos;
+        if (videos.count && !failures) RTSaveFeed(RTFeedCachePath(), ids, videos);
         if (failures == ids.count) weakSelf.emptyText = @"The feeds did not load. Pull down to try again.";
         else weakSelf.emptyText = @"Subscribe to channels to see their new videos here.";
         if (!weakSelf.items.count) weakSelf.items = @[];
