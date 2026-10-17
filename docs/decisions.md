@@ -109,6 +109,24 @@ these results:
 - A seek to the middle starts play again after 4 seconds, at the start of the
   segment.
 
+## Downloads of a segment (1.1.0)
+
+A test on the iPhone 4S with a 720p video (2026-10-17) read 6 segments,
+about 31 seconds of play. The network gave 50 to 300 KB/s.
+
+| | 1.0.1 | 1.1.0 |
+| --- | --- | --- |
+| Wait for segments 1 to 5 | 0.57 to 3.66 seconds | None, already loaded |
+| Sound downloaded | 1,456 KB | 648 KB |
+
+- **Each sound block downloads one time.** A sound block of YouTube is
+  about 10 seconds, and a video segment is 3 to 7 seconds. The session
+  keeps the last 6 blocks.
+- **The video and the sound download at the same time.** Before, a segment
+  waited for the sum of the two downloads.
+- **Two segments load ahead.** The session keeps 5 segments, about 2.5 MB at
+  720p.
+
 ## The icon
 
 iOS 6 rounds the corners of an App Store icon and adds the gloss. It does
