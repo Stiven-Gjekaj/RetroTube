@@ -126,6 +126,15 @@ about 31 seconds of play. The network gave 50 to 300 KB/s.
   waited for the sum of the two downloads.
 - **Two segments load ahead.** The session keeps 5 segments, about 2.5 MB at
   720p.
+- **One segment downloads at a time.** A test on 2026-10-17 with the Wi-Fi
+  of the phone at 49 to 143 KB/s (the Mac on the same network had
+  624 KB/s) showed three downloads at the same time: one segment of 230 KB
+  took 89 seconds, and play did not start. With one segment at a time, a
+  720p video started 1.2 seconds after the prepare and played with no stop.
+  A request of the player goes before a prefetch, but a prefetch that runs
+  already does not stop. So a seek can wait for one segment.
+- A 720p video needs about 130 KB/s. On a slower network, choose 360p or
+  480p with the quality button.
 
 ## The icon
 
