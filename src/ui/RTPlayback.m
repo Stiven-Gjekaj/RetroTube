@@ -1,6 +1,7 @@
 #import "RTPlayback.h"
 #import <MediaPlayer/MediaPlayer.h>
 #import <QuartzCore/QuartzCore.h>
+#import "RTAutoSession.h"
 #import "RTHLSServer.h"
 #import "RTInnerTube.h"
 #import "RTStore.h"
@@ -10,7 +11,7 @@ NSString *const RTMaxHeightDefaultsKey = @"RTMaxHeight";
 
 // A movie player that keeps its stream session for as long as it shows.
 @interface RTMoviePlayerViewController : MPMoviePlayerViewController
-@property (nonatomic, strong) RTStreamSession *session;
+@property (nonatomic, strong) id<RTHLSSource> session;
 @end
 
 @implementation RTMoviePlayerViewController
@@ -77,9 +78,20 @@ static void RTShowError(NSString *title, NSString *message) {
     [[RTStore shared] addToHistory:entry];
 }
 
++ (BOOL)isAuto {
+    return [[NSUserDefaults standardUserDefaults] integerForKey:RTMaxHeightDefaultsKey] <= 0;
+}
+
 + (NSInteger)maxHeight {
     NSInteger height = [[NSUserDefaults standardUserDefaults] integerForKey:RTMaxHeightDefaultsKey];
-    return height > 0 ? height : 720;
+    return height > 0 ? height : [[[RTAutoSession autoHeights] firstObject] integerValue];
+}
+
+// Auto needs two qualities or more. With one, it plays that one.
++ (id<RTHLSSource>)sourceForInfo:(RTPlayerInfo *)info video:(RTFormat *)videoFormat {
+    NSArray *formats = [self isAuto] ? RTAutoFormats(info, [self maxHeight]) : nil;
+    if (formats.count >= 2) return [[RTAutoSession alloc] initWithVideos:formats audio:info.audioFormat];
+    return [[RTStreamSession alloc] initWithVideo:videoFormat audio:info.audioFormat];
 }
 
 + (void)playVideo:(RTVideo *)video from:(UIViewController *)controller {
@@ -123,10 +135,10 @@ static void RTShowError(NSString *title, NSString *message) {
         RTShowError(@"The video does not play", text);
         return;
     }
-    RTStreamSession *session = [[RTStreamSession alloc] initWithVideo:videoFormat audio:info.audioFormat];
+    id<RTHLSSource> session = [self sourceForInfo:info video:videoFormat];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         NSError *prepareError = nil;
-        BOOL ready = [session prepare:&prepareError];
+        BOOL ready = [(id)session prepare:&prepareError];
         dispatch_async(dispatch_get_main_queue(), ^{
             finish();
             if (!ready) {
