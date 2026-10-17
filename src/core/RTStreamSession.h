@@ -33,6 +33,14 @@ typedef NSData *(^RTRangeReader)(NSURL *url, uint64_t start, uint64_t end, NSErr
 // other methods.
 - (BOOL)prepare:(NSError **)error;
 
+// The number of segments that load before the player asks for them. The
+// default is 2. Set it before the first segment.
+@property (nonatomic) NSUInteger prefetchDepth;
+
+// Another session of the same video, from which this session takes its
+// sound blocks. The qualities of an Auto stream share one sound cache.
+@property (nonatomic, strong) RTStreamSession *audioOwner;
+
 // The duration of the segment in seconds.
 - (double)durationOfSegment:(NSUInteger)index;
 

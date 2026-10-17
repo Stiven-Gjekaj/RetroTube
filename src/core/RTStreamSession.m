@@ -2,9 +2,9 @@
 #import "RTMP4.h"
 #import "RTRemux.h"
 
-// The number of segments that load before the player asks for them. The
-// network of the phone changes speed a lot, and two segments hide a slow
-// moment. Each 720p segment is about 0.5 MB.
+// The number of segments that load before the player asks for them, by
+// default. The network of the phone changes speed a lot, and two segments
+// hide a slow moment. Each 720p segment is about 0.5 MB.
 static const NSUInteger RTPrefetchDepth = 2;
 
 static NSError *RTSessionError(NSString *text) {
@@ -84,6 +84,7 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
         _condition = [NSCondition new];
         _prefetchQueue = dispatch_queue_create("RTStreamSession.prefetch", DISPATCH_QUEUE_SERIAL);
         _buildSlot = dispatch_semaphore_create(1);
+        _prefetchDepth = RTPrefetchDepth;
     }
     return self;
 }
@@ -201,7 +202,7 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
         double entryStart = (double)entry.startTime / index.timescale;
         double entryEnd = (double)(entry.startTime + entry.duration) / index.timescale;
         if (entryEnd > start && entryStart < end) {
-            NSData *block = [self audioBlock:i error:error];
+            NSData *block = [(self.audioOwner ?: self) audioBlock:i error:error];
             if (!block) return nil;
             [joined appendData:block];
         }
@@ -270,7 +271,7 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
         [self.condition unlock];
     }
     if (data) {
-        for (NSUInteger next = index + 1; next <= index + RTPrefetchDepth; next++) [self prefetch:next];
+        for (NSUInteger next = index + 1; next <= index + self.prefetchDepth; next++) [self prefetch:next];
     }
     return data;
 }
