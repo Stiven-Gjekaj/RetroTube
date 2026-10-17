@@ -242,6 +242,34 @@ RT_TEST(test_session_reads_video_and_sound_at_the_same_time) {
     RT_EXPECT([[NSDate date] timeIntervalSinceDate:began] < 0.35);
 }
 
+RT_TEST(test_session_downloads_one_segment_at_a_time) {
+    FakeFile *video = VideoFile(), *audio = AudioFile();
+    __block int active = 0, most = 0;
+    NSObject *lock = [NSObject new];
+    RTStreamSession *session = [[RTStreamSession alloc] initWithVideo:Format(video, @"video") audio:Format(audio, @"audio")
+        reader:^NSData *(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
+            BOOL isVideo = [url.lastPathComponent isEqualToString:@"video"];
+            if (isVideo) {
+                @synchronized (lock) {
+                    active++;
+                    most = MAX(most, active);
+                }
+                [NSThread sleepForTimeInterval:0.1];
+                @synchronized (lock) {
+                    active--;
+                }
+            }
+            NSData *data = isVideo ? video.data : audio.data;
+            return [data subdataWithRange:NSMakeRange((NSUInteger)start, (NSUInteger)(end - start + 1))];
+        }];
+    [session prepare:NULL];
+    most = 0;
+    // The player asks for each segment as soon as it has the one before.
+    for (NSUInteger i = 0; i < 3; i++) RT_EXPECT([session segmentAtIndex:i error:NULL] != nil);
+    [NSThread sleepForTimeInterval:0.3];
+    RT_EQUAL_INT(most, 1);
+}
+
 RT_TEST(test_session_segment_fails_when_sound_fails) {
     FakeFile *video = VideoFile(), *audio = AudioFile();
     RTStreamSession *session = [[RTStreamSession alloc] initWithVideo:Format(video, @"video") audio:Format(audio, @"audio")

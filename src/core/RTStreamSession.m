@@ -53,6 +53,10 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
 @property (nonatomic, strong) NSMutableSet *loading;
 @property (nonatomic, strong) NSCondition *condition;
 @property (nonatomic, strong) dispatch_queue_t prefetchQueue;
+// Only one segment downloads at a time. On a slow network, two downloads
+// share the bandwidth, and the segment that the player waits for comes later.
+@property (nonatomic, strong) dispatch_semaphore_t buildSlot;
+@property (nonatomic) NSUInteger waitingRequests;  // Requests of the player that wait for the slot
 @end
 
 @implementation RTStreamSession
@@ -79,6 +83,7 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
         _audioLoading = [NSMutableSet set];
         _condition = [NSCondition new];
         _prefetchQueue = dispatch_queue_create("RTStreamSession.prefetch", DISPATCH_QUEUE_SERIAL);
+        _buildSlot = dispatch_semaphore_create(1);
     }
     return self;
 }
@@ -229,7 +234,15 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
     [self.condition unlock];
 
     if (!data) {
+        [self.condition lock];
+        self.waitingRequests++;
+        [self.condition unlock];
+        dispatch_semaphore_wait(self.buildSlot, DISPATCH_TIME_FOREVER);
+        [self.condition lock];
+        self.waitingRequests--;
+        [self.condition unlock];
         data = [self buildSegment:index error:error];
+        dispatch_semaphore_signal(self.buildSlot);
         [self.condition lock];
         if (data) [self.segments setObject:data forKey:key];
         [self.loading removeObject:key];
@@ -254,12 +267,20 @@ NSData *RTReadRange(NSURL *url, uint64_t start, uint64_t end, NSError **error) {
         RTStreamSession *session = weakSelf;
         if (!session) return;
         NSNumber *k = @(index);
+        // A request of the player goes first. The next request of the player
+        // starts the prefetch again.
+        dispatch_semaphore_wait(session.buildSlot, DISPATCH_TIME_FOREVER);
         [session.condition lock];
-        BOOL stillNeeded = ![session.segments objectForKey:k] && ![session.loading containsObject:k];
+        BOOL stillNeeded = ![session.segments objectForKey:k] && ![session.loading containsObject:k] &&
+                           session.waitingRequests == 0;
         if (stillNeeded) [session.loading addObject:k];
         [session.condition unlock];
-        if (!stillNeeded) return;
+        if (!stillNeeded) {
+            dispatch_semaphore_signal(session.buildSlot);
+            return;
+        }
         NSData *data = [session buildSegment:index error:NULL];
+        dispatch_semaphore_signal(session.buildSlot);
         [session.condition lock];
         if (data) [session.segments setObject:data forKey:k];
         [session.loading removeObject:k];
