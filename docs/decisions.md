@@ -136,6 +136,27 @@ about 31 seconds of play. The network gave 50 to 300 KB/s.
 - A 720p video needs about 130 KB/s. On a slower network, choose 360p or
   480p with the quality button.
 
+## Auto quality (1.2.0)
+
+**Decision: Auto gives the player of iOS 6 a main HLS playlist with 240p,
+360p, 480p, and 720p.** The player picks a quality by the speed of the
+network, and it can change between segments.
+
+- YouTube gives all the qualities of a video the same segment times. A test
+  of 3 videos at 240p, 360p, 480p, and 720p on 2026-10-17 found the same
+  times in each. A quality with other times is not used.
+- The player starts with the first quality of the playlist. Auto puts 360p
+  first, because it starts fast.
+- In Auto, no segment loads before the player asks for it. The player
+  measures the speed by the time that a segment takes, and a segment that
+  loaded early looks like a fast network.
+- All the qualities share one sound cache.
+- A test on the iPhone 4S at about 40 KB/s: Auto started at 360p, played 49
+  seconds, then changed to 240p and played on after one stop of about 10
+  seconds. When it changed, the player also loaded some 240p segments that
+  it had at 360p. The app cannot change this behavior of the player.
+- Auto is the default. A quality that the person chose before stays.
+
 ## The icon
 
 iOS 6 rounds the corners of an App Store icon and adds the gloss. It does
